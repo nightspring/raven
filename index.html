@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raven</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+</head>
+<body>
+    <header>
+        <div class="scoreboard-container">
+            <div class="logo-rules-container">
+                <h1 class="raven-title">Raven</h1>
+                <img src="/img/raven.png" alt="Game Logo" class="logo-img">
+                <h3 class="rules"><a href="" id="rulesLink">Rules</a></h3>
+            </div>
+            <div class="score-container">
+                <h2 class="score">Score:&nbsp;&nbsp; Us&nbsp;<div class="badge-container"><span class="badge usScore">0</span></div>&nbsp;&nbsp;Them&nbsp;<div class="badge-container"><span class="badge themScore">0</span></div></h2>
+            </div>
+            <div class="bid-container">
+                <h2 class="bid">Current Bid&nbsp;<div class="badge-container"><span class="badge currentBid">0</span></div></h2>
+            </div>
+            <div class="trump-container">
+                <h2 class="trump">Trump&nbsp;<div class="trump-badge-container"><span class="badge trumpElem">None</span></div></h2>
+            </div>
+        </div>
+
+        <div class="status-container">
+            <p class="current-status">
+                Click 'Play Game' button to start the game.
+            </p>
+        </div>
+        <div class="buttons-container">
+            <div class="reset-button-container">
+                <button id="resetGame" class="game-button">Reset</button>
+            </div>
+            <div class="play-game-button-container">
+                <button id="playGame" class="game-button">Play Game</button>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="gameplay-container">
+            <div class="game-table-container">
+                <div class="middle-four-container">
+
+                </div>
+                <div class="inner-game-table-container">
+                    <p class="partner-card-info">Partner's Card</p>
+                    <div class="partner-card-container"><img src="/img/b10.png" class="card"></div>
+                    <div class="rival2-card-container"><span class="rival-card-info-left">Rival Card</span><img src="/img/r14.png" class="card rival-card"></div>
+                    <div class="rival1-card-container"><img src="/img/y5.png" class="card rival-card"><span class="rival-card-info-right">Rival Card</span></div>
+                    <div class="player-card-container"><img src="/img/g6.png" class="card player-card"></div>
+                    <p class="your-card-info">Your Card</p>
+                </div>
+            </div>
+            <p class="your-hand-p">Your Hand</p>
+            <div class="player-hand-container">
+                
+            </div>
+        </div>
+    </main>
+    <script src="index.js" type="module"></script>
+</body>
+</html> 
