@@ -10,8 +10,7 @@ for(let i = 0; i < 40; i++) {
 let usScore = 0;
 let themScore = 0;
 let currentBid = 0;
-let trump = "None";
-let trumpColor = 'black';
+let trumpColor = 'None';
 
 // initialize player hands and middle
 let playerHand = [];
@@ -106,15 +105,28 @@ function updateScoreboardElement(elem, innerHTML, color) {
 
     // updates color word and border on its container
     if(arguments.length > 2) {
-        elem.style.color = color;
-        trumpBadgeContainer.style.borderColor = color;
+        if(color == 'Black') {
+            trumpBadgeContainer.style.color = "black";
+            trumpBadgeContainer.style.borderColor = "black";
+        } else if(color == 'Red') {
+            trumpBadgeContainer.style.color = "#B01919";
+            trumpBadgeContainer.style.borderColor = "#B01919";
+        } else if(color == 'Green') {
+            trumpBadgeContainer.style.color = "#147E04"
+            trumpBadgeContainer.style.borderColor = "#147E04";
+        } else {
+            trumpBadgeContainer.style.color = "#C3AB1C";
+            trumpBadgeContainer.style.borderColor = "#C3AB1C";
+        }
     }
 }
 
 // define function to sort player's hand
-function sortPlayerHand() {
-    playerHand.sort((a,b) => a-b);
+function sortPlayerHand(hand) {
+    hand.sort((a,b) => a-b);
 }
+
+
 
 // define function to populate images of player's hand, attach click listener
 function dealPlayerHand() {
@@ -248,7 +260,7 @@ function handleCardClick(cardID) {
                 playerHand.splice(j, 1);
             }
             // sorts player hand again
-            sortPlayerHand();
+            sortPlayerHand(playerHand);
 
             // adds a one second delay after selecting 4th discard
             const clearHandsAndMiddleTimeout = setTimeout(() => {
@@ -295,6 +307,38 @@ function playerDiscarding() {
 // define function to handle the auto discard of four cards
 function autoDiscarding() {
     console.log("Auto discarding");
+    console.log(highestBidder);
+
+    // adds the middle to the highest auto bidder's hand
+    if(highestBidder == 'rival1') {
+        for(let i in middle) {
+            rival1Hand.push(middle[i]);
+        }
+
+        sortPlayerHand(rival1Hand);
+        // choose Trump color then update scoreboard element
+        trumpColor = chooseTrump(rival1Hand);
+        updateScoreboardElement(trumpBadgeContainer, trumpColor, trumpColor);
+    } else if(highestBidder == 'rival2') {
+        for(let i in middle) {
+            rival2Hand.push(middle[i]);         
+        }
+
+        sortPlayerHand(rival2Hand);
+        // choose Trump color then update scoreboard element
+        trumpColor = chooseTrump(rival2Hand);
+        updateScoreboardElement(trumpBadgeContainer, trumpColor, trumpColor);
+    } else {
+        for(let i in middle) {
+            partnerHand.push(middle[i]);
+        }
+
+        sortPlayerHand(partnerHand);
+        // choose Trump color then update scoreboard element
+        trumpColor = chooseTrump(partnerHand);
+        updateScoreboardElement(trumpBadgeContainer, trumpColor, trumpColor);
+    }
+
 }
 
 // define function to handle the middle four
@@ -372,6 +416,77 @@ function hasFiveOneColor(hand) {
         } else yCount++;
     }
     return (rCount > 4 || bCount > 4 || gCount > 4 || yCount > 4);
+}
+
+function chooseTrump(hand) {
+
+    let rCount = 0;
+    let rNumberCount = 0;
+    let bCount = 0;
+    let bNumberCount = 0;
+    let gCount = 0;
+    let gNumberCount = 0;
+    let yCount = 0;
+    let yNumberCount = 0;
+
+    for(let i in hand) {
+        if(hand[i] >= 0 && hand[i] < 10) {
+            rCount++;
+            rNumberCount += cardInfo[hand[i]].number;
+        } else if(hand[i] >= 10 && hand[i] < 20) {
+            bCount++;
+            bNumberCount += cardInfo[hand[i]].number;
+        } else if(hand[i] >= 20 && hand[i] < 30) {
+            gCount++;
+            gNumberCount += cardInfo[hand[i]].number;
+        } else {
+            yCount++;
+            yNumberCount += cardInfo[hand[i]].number;
+        }
+    }
+
+    console.log("rCount " + rCount);
+    console.log("rNumber " + rNumberCount);
+
+    console.log("bCount " + bCount);
+    console.log("bNumber " + bNumberCount);
+
+    console.log("gCount " + gCount);
+    console.log("gNumber " + gNumberCount);
+
+    console.log("yCount " + yCount);
+    console.log("yNumber " + yNumberCount);
+
+    for(let j in hand) {
+        console.log(cardInfo[hand[j]].code);
+    }
+
+
+    // find if one color is more dominant
+    if(rCount > bCount && rCount > gCount && rCount > yCount) {
+        return 'Red';
+    } else if(bCount > gCount && bCount > yCount && bCount > rCount) {
+        return 'Black';
+    } else if(gCount > yCount && gCount > rCount && gCount > bCount) {
+        return 'Green';
+    } else if (yCount > rCount && yCount > bCount && yCount > gCount) {
+        return 'Yellow';
+    }
+        
+    // if we made it here then there is a tie in colors
+    // to make it easy, return the highest or tied highest numberCount
+
+    console.log("There is a tie");
+    
+    if(rNumberCount >= bNumberCount && rNumberCount >= gNumberCount && rNumberCount >= yNumberCount) {
+        return 'Red';
+    } else if(bNumberCount >= gNumberCount && bNumberCount >= yNumberCount) {
+        return 'Black';
+    } else if(gNumberCount >= yNumberCount) {
+        return 'Green';
+    } else {
+        return 'Yellow';
+    }
 }
 
 // define function to calculate max bid
@@ -814,7 +929,7 @@ function startGame() {
     playGameButton.disabled = true;
     shuffleCards();
     dealCards();
-    sortPlayerHand();
+    sortPlayerHand(playerHand);
     // deals hand invisibly, is revealed later
     dealPlayerHand();
     // deals the cards invisibly, is revealed later
@@ -844,8 +959,8 @@ function resetGame() {
     partnerBid = 0;
     rival1Bid = 0;
     rival2Bid = 0;
-    trump = "None";
-    trumpColor = 'black';
+    trumpColor = 'None';
+    updateScoreboardElement(trumpBadgeContainer, "None", "Black");
     playerHand = [];
     partnerHand = [];
     rival1Hand = [];
