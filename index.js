@@ -126,8 +126,6 @@ function sortPlayerHand(hand) {
     hand.sort((a,b) => a-b);
 }
 
-
-
 // define function to populate images of player's hand, attach click listener
 function dealPlayerHand() {
     // reset placeholder, last round player hand img
@@ -147,10 +145,6 @@ function dealPlayerHand() {
             handleCardClick(cardID);
         });
     }
-
-    // sets the player-hand-container to visible
-/*     playerHandContainer.style.visibility = 'visible';
-    playerHandContainer.style.opacity = '1'; */
 }
 
 // deals the middle cards front invisibly and attach event listener
@@ -276,7 +270,6 @@ function handleCardClick(cardID) {
 
             }, 1000);
             timeoutArray.push(clearHandsAndMiddleTimeout);
-
         }
     }
 }
@@ -301,13 +294,10 @@ function playerDiscarding() {
 
     // allows player to click on cards to discard
     canPlayerDiscard = true;
-
 }
 
 // define function to handle the auto discard of four cards
 function autoDiscarding() {
-    console.log("Auto discarding");
-    console.log(highestBidder);
 
     // adds the middle to the highest auto bidder's hand
     if(highestBidder == 'rival1') {
@@ -318,6 +308,8 @@ function autoDiscarding() {
         sortPlayerHand(rival1Hand);
         // choose Trump color then update scoreboard element
         trumpColor = chooseTrump(rival1Hand);
+        // need to discard autoplayer cards here
+
         updateScoreboardElement(trumpBadgeContainer, trumpColor, trumpColor);
     } else if(highestBidder == 'rival2') {
         for(let i in middle) {
@@ -327,6 +319,9 @@ function autoDiscarding() {
         sortPlayerHand(rival2Hand);
         // choose Trump color then update scoreboard element
         trumpColor = chooseTrump(rival2Hand);
+
+        // need to discard autoplayer cards here
+
         updateScoreboardElement(trumpBadgeContainer, trumpColor, trumpColor);
     } else {
         for(let i in middle) {
@@ -336,9 +331,11 @@ function autoDiscarding() {
         sortPlayerHand(partnerHand);
         // choose Trump color then update scoreboard element
         trumpColor = chooseTrump(partnerHand);
+
+        // need to discard autoplayer cards here
+        
         updateScoreboardElement(trumpBadgeContainer, trumpColor, trumpColor);
     }
-
 }
 
 // define function to handle the middle four
@@ -418,6 +415,7 @@ function hasFiveOneColor(hand) {
     return (rCount > 4 || bCount > 4 || gCount > 4 || yCount > 4);
 }
 
+// define function to choose Trump color for auto player
 function chooseTrump(hand) {
 
     let rCount = 0;
@@ -445,44 +443,25 @@ function chooseTrump(hand) {
         }
     }
 
-    console.log("rCount " + rCount);
-    console.log("rNumber " + rNumberCount);
-
-    console.log("bCount " + bCount);
-    console.log("bNumber " + bNumberCount);
-
-    console.log("gCount " + gCount);
-    console.log("gNumber " + gNumberCount);
-
-    console.log("yCount " + yCount);
-    console.log("yNumber " + yNumberCount);
-
-    for(let j in hand) {
-        console.log(cardInfo[hand[j]].code);
-    }
-
-
-    // find if one color is more dominant
-    if(rCount > bCount && rCount > gCount && rCount > yCount) {
+    // find if one numberCount is more dominant
+    if(rNumberCount > bNumberCount && rNumberCount > gNumberCount && rNumberCount > yNumberCount) {
         return 'Red';
-    } else if(bCount > gCount && bCount > yCount && bCount > rCount) {
+    } else if(bNumberCount > gNumberCount && bNumberCount > yNumberCount && bNumberCount > rNumberCount) {
         return 'Black';
-    } else if(gCount > yCount && gCount > rCount && gCount > bCount) {
+    } else if(gNumberCount > yNumberCount && gNumberCount > rNumberCount && gNumberCount > bNumberCount) {
         return 'Green';
-    } else if (yCount > rCount && yCount > bCount && yCount > gCount) {
+    } else if (yNumberCount > rNumberCount && yNumberCount > bNumberCount && yNumberCount > gNumberCount) {
         return 'Yellow';
     }
         
-    // if we made it here then there is a tie in colors
-    // to make it easy, return the highest or tied highest numberCount
-
-    console.log("There is a tie");
+    // if we made it here then there is a tie in numberCount
+    // to make it easy, return the highest or tied highest number of color cards
     
-    if(rNumberCount >= bNumberCount && rNumberCount >= gNumberCount && rNumberCount >= yNumberCount) {
+    if(rCount >= bCount && rCount >= gCount && rCount >= yCount) {
         return 'Red';
-    } else if(bNumberCount >= gNumberCount && bNumberCount >= yNumberCount) {
+    } else if(bCount >= gCount && bCount >= yCount) {
         return 'Black';
-    } else if(gNumberCount >= yNumberCount) {
+    } else if(gCount >= yCount) {
         return 'Green';
     } else {
         return 'Yellow';
@@ -610,9 +589,9 @@ function handleBids() {
         const rival2BidTimeout = setTimeout(() => {
             let temp = "";
             
-            // makes sure the last bid is at least 50
-            if(currentBid < 50 && rival2Bid == 0) {
-                rival2Bid = 50;
+            // makes sure the last bid is at least 60
+            if(currentBid < 60 && rival2Bid == 0) {
+                rival2Bid = 60;
             }
             if(rival2Bid > currentBid) {
                 temp = "Rival #2 bids " + rival2Bid + ".";
@@ -681,9 +660,9 @@ function handleBids() {
         // Partner is the 4th bidder
         const partnerBidTimeout = setTimeout(() => {
             let temp = "";
-            // makes sure last bid is at least 50
-            if(currentBid < 50 && partnerBid == 0) {
-                partnerBid = 50;
+            // makes sure last bid is at least 60
+            if(currentBid < 60 && partnerBid == 0) {
+                partnerBid = 60;
             }
             if(partnerBid > currentBid) {
                 temp = "Your partner bids " + partnerBid + ".";
@@ -752,9 +731,9 @@ function handleBids() {
         // rival1 bids 4th
         const rival1BidTimeout = setTimeout(() => {
             let temp = "";
-            // makes sure last bid is at least 50
-            if(currentBid < 50 && rival1Bid == 0) {
-                rival1Bid = 50;
+            // makes sure last bid is at least 60
+            if(currentBid < 60 && rival1Bid == 0) {
+                rival1Bid = 60;
             }
             if(rival1Bid > currentBid) {
                 temp = "Rival #1 bids " + rival1Bid + ".";
@@ -814,9 +793,9 @@ function handleBids() {
         // rival1 bids third
         const rival1BidTimeout = setTimeout(() => {
             let temp = "";
-            // makes sure last bid is at least 50
-            if(currentBid < 50 && rival1Bid == 0) {
-                rival1Bid = 50;
+            // makes sure last bid is at least 60
+            if(currentBid < 60 && rival1Bid == 0) {
+                rival1Bid = 60;
             }
             if(rival1Bid > currentBid) {
                 temp = "Rival #1 bids " + rival1Bid + ".";
