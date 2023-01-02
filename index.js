@@ -68,6 +68,8 @@ const middleFourContainer = document.querySelector('.middle-four-container');
 
 // initialize inner game table element
 const innerGameTableContainer = document.querySelector('.inner-game-table-container');
+
+// initialize container for four playing cards during gameplay
 const partnerCardContainer = document.querySelector('.partner-card-container');
 const rival1CardContainer = document.querySelector('.rival1-card-container');
 const rival2CardContainer = document.querySelector('.rival2-card-container');
@@ -779,20 +781,50 @@ function cardsThatMatchLeadColor(hand) {
 // calls display card, pushes to cardsPlayedThisRound
 function playCard(player, card) {
     if(player == 'rival1') {
-        displayCard('rival1', card);
         cardsPlayedThisRound.push(card);
+        displayCard('rival1', card);
+        
 
     } else if(player == 'rival2') {
-        displayCard('rival2', card);
         cardsPlayedThisRound.push(card);
+        displayCard('rival2', card);
 
     } else if(player == 'partner') {
-        displayCard('partner', card);
         cardsPlayedThisRound.push(card);
+        displayCard('partner', card);
 
     } else if(player == 'player') {
-        displayCard('player', card);
         cardsPlayedThisRound.push(card);
+        displayCard('player', card);
+    }
+}
+
+// display a card to the screen
+function displayCard(player, card) {
+
+    if(player == 'partner') {
+        let j = cardInfo[card].img;
+        let k = `<img src="${j}" class="card">`;
+        // inserts img
+        partnerCardContainer.innerHTML = k;
+
+    } else if(player == 'rival1') {
+        let j = cardInfo[card].img;
+        let k = `<img src="${j}" class="card rival-card">`;
+        // inserts img
+        rival1CardContainer.innerHTML = k;
+
+    } else if(player == 'rival2') {
+        let j = cardInfo[card].img;
+        let k = `<img src="${j}" class="card rival-card">`;
+        // inserts img
+        rival2CardContainer.innerHTML = k;
+
+    } else if(player == 'player') {
+        let j = cardInfo[card].img;
+        let k = `<img src="${j}" class="card player-card">`;
+        // inserts img
+        playerCardContainer.innerHTML = k;
     }
 }
 
@@ -874,38 +906,6 @@ function playRival1Card() {
     } else {
         // round over, send to next round
         console.log("send to next round");
-    }
-}
-
-// display a card to the screen
-function displayCard(player, card) {
-
-    if(player == 'partner') {
-        let j = cardInfo[card].img;
-        let k = `<img src="${j}" class="card">`;
-        // inserts img
-        partnerCardContainer.innerHTML = k;
-        partnerCardContainer.classList.remove('invisible');
-
-    } else if(player == 'rival1') {
-        let j = cardInfo[card].img;
-        let k = `<img src="${j}" class="card rival-card">`;
-        // inserts img
-        rival1CardContainer.innerHTML = k;
-        rival1CardContainer.classList.remove('invisible');
-
-    } else if(player == 'rival2') {
-        let j = cardInfo[card].img;
-        let k = `<img src="${j}" class="card rival-card">`;
-        // inserts img
-        rival2CardContainer.innerHTML = k;
-        rival2CardContainer.classList.remove('invisible');
-    } else if(player == 'player') {
-        let j = cardInfo[card].img;
-        let k = `<img src="${j}" class="card player-card">`;
-        // inserts img
-        playerCardContainer.innerHTML = k;
-        playerCardContainer.classList.remove('invisible');
     }
 }
 
@@ -1463,13 +1463,18 @@ function resetGame() {
     clearMyTimeouts();
     intervalArray = [];
     timeoutArray = [];
+    // resets middle 4 for bidding and player hand below
     middleFourContainer.innerHTML = "";
     playerHandContainer.innerHTML = "";
+
     innerGameTableContainer.classList.add('invisible');
-    partnerCardContainer.classList.add('invisible');
-    rival1CardContainer.classList.add('invisible');
-    rival2CardContainer.classList.add('invisible');
-    playerCardContainer.classList.add('invisible');
+
+    // resets the 4 cards for gameplay
+    partnerCardContainer.innerHTML = "";
+    rival1CardContainer.innerHTML = "";
+    rival2CardContainer.innerHTML = "";
+    playerCardContainer.innerHTML = "";
+
     updateCurrentStatus("Click 'Play Game' button to start the game.");
     updateCurrentBid(0);
     usScore = 0;

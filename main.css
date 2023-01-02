@@ -146,7 +146,7 @@ header {
     background-color: #333333;
     border-radius: 50px;
     text-align: center;
-    max-width: 700px;
+    width: 700px;
     position: relative;
 }
 
@@ -160,19 +160,9 @@ header {
     margin: 0 2px 3px 2px;
 }
 
-.rival2-card-container, .rival1-card-container {
-    display: inline;
-}
-
 .card {
     width: 100px;
     border-radius: 8px;
-}
-
-.rival-card {
-    margin: 0;
-    margin-top: -75px;
-    padding: 0;
 }
 
 .partner-card-info {
@@ -182,48 +172,65 @@ header {
     font-size: 1rem;
 }
 
-.rival-card-info-left {
-    display: inline;
-    color: var(--primary-color);
-    text-align: left;
-    vertical-align: top;
-    margin-right: 15px;
-    font-size: 1rem;
+.inner-game-table-container {
+    position: relative;
 }
 
-.rival-card-info-right {
-    display: inline;
-    color: var(--primary-color);
-    text-align: right;
-    vertical-align: top;
-    margin-left: 15px;
-    font-size: 1rem;
-}
-
-.blank-space-container {
-    display: inline;
-    visibility: hidden;
-    padding: 0;
-    margin-right: -15px;
-    padding-left: 10px;
+.partner-card-container {
+    height: 160px;
+    width: 110px;
+    margin: auto;
+    margin-bottom: 5px;
 }
 
 .rival1-card-container {
-    margin-right: 3px;
+    height: 160px;
+    margin-top: -75px;
+    margin-left: 55px;
+    display: inline;
+    position: absolute;
+    width: 110px;
 }
 
 .rival2-card-container {
-    margin-right: 15px;
+    height: 160px;
+    display: inline;
+    position: absolute;
+    margin-top: -75px;
+    margin-left: -165px;
+    width: 110px;
+}
+
+.rival-card-info-left {
+    margin-top: 0;
+    margin-left: -235px;
+    display: inline;
+    color: white;
+    text-align: left;
+    font-size: 1rem;
+    position: absolute;
+}
+
+.rival-card-info-right {
+    margin-left: 175px;
+    display: inline;
+    color: white;
+    text-align: right;
+    font-size: 1rem;
+    position: absolute;
+}
+
+.player-card-container {
+    height: 160px;
+    width: 110px;
+    margin-top: -75px;
+    margin: auto;
 }
 
 .your-card-info {
     padding-bottom: 10px;
     margin-top: 5px;
     font-size: 1rem;
-}
-
-.player-card {
-    margin-top: -75px;
 }
 
 /* adjust this width with media */
