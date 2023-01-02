@@ -39,6 +39,15 @@ let hasPlayerAnswered = false;
 let canPlayerDiscard = false;
 let canPlayerSelectCard = false;
 
+// initialize variables relating to playing cards
+let round = 0;
+let leadColor = 'none';
+let leadPlayer = 'none';
+let cardsPlayedThisRound = [];
+let cardsWonByPlayerTeam = [];
+let cardsWonByRivalTeam = [];
+
+
 // initialize scoreboard, status update, and game buttons
 const usScoreElem = document.querySelector('.usScore');
 const themScoreElem = document.querySelector('.themScore');
@@ -56,6 +65,13 @@ const playerHandImgClass = document.querySelector('.player-hand-img');
 
 // initialize middle card elements
 const middleFourContainer = document.querySelector('.middle-four-container');
+
+// initialize inner game table element
+const innerGameTableContainer = document.querySelector('.inner-game-table-container');
+const partnerCardContainer = document.querySelector('.partner-card-container');
+const rival1CardContainer = document.querySelector('.rival1-card-container');
+const rival2CardContainer = document.querySelector('.rival2-card-container');
+const playerCardContainer = document.querySelector('.player-card-container');
 
 // attaches event listener to game buttons
 playGameButton.addEventListener('click', () => startGame());
@@ -186,6 +202,8 @@ function revealMiddleCardsBack() {
     const middleBackInterval = setInterval(showMiddle, 400);
     intervalArray.push(middleBackInterval);
 
+    middleFourContainer.classList.remove('invisible');
+
     function showMiddle() {
         if(count < 104) {
             let card = document.getElementById(count);
@@ -261,6 +279,7 @@ function handleCardClick(cardID) {
                 // clears middle and player hand card elements
                 middleFourContainer.innerHTML = "";
                 playerHandContainer.innerHTML = "";
+                middleFourContainer.classList.add('invisible');
 
                 // invisibly deals the player hand
                 dealPlayerHand();
@@ -277,6 +296,12 @@ function handleCardClick(cardID) {
 // define function to handle Discarding of four cards
 function handleDiscarding() {
     if(highestBidder == 'player') {
+
+        // sorts autoPlayer hands
+        partnerHand = sortAutoPlayerHand(partnerHand);
+        rival1Hand = sortAutoPlayerHand(rival1Hand);
+        rival2Hand = sortAutoPlayerHand(rival2Hand);
+
         playerDiscarding();
     } else {
         autoDiscarding();
@@ -298,7 +323,7 @@ function playerDiscarding() {
 
 // define function to handle the auto discard of four cards
 function autoDiscarding() {
-
+    
     // adds the middle to the highest auto bidder's hand
     if(highestBidder == 'rival1') {
         for(let i in middle) {
@@ -308,9 +333,10 @@ function autoDiscarding() {
         sortPlayerHand(rival1Hand);
         // choose Trump color then update scoreboard element
         trumpColor = chooseTrump(rival1Hand);
-        // need to discard autoplayer cards here
+        // discard autoplayer cards here
+        rival1Hand = discardFourAutoPlayerCards(rival1Hand);
 
-        updateScoreboardElement(trumpBadgeContainer, trumpColor, trumpColor);
+        beginRoundOneAutoPlayer();
     } else if(highestBidder == 'rival2') {
         for(let i in middle) {
             rival2Hand.push(middle[i]);         
@@ -320,9 +346,10 @@ function autoDiscarding() {
         // choose Trump color then update scoreboard element
         trumpColor = chooseTrump(rival2Hand);
 
-        // need to discard autoplayer cards here
+        // discard autoplayer cards here
+        rival2Hand = discardFourAutoPlayerCards(rival2Hand);
 
-        updateScoreboardElement(trumpBadgeContainer, trumpColor, trumpColor);
+        beginRoundOneAutoPlayer();
     } else {
         for(let i in middle) {
             partnerHand.push(middle[i]);
@@ -332,10 +359,288 @@ function autoDiscarding() {
         // choose Trump color then update scoreboard element
         trumpColor = chooseTrump(partnerHand);
 
-        // need to discard autoplayer cards here
+        // discard autoplayer cards here
+        partnerHand = discardFourAutoPlayerCards(partnerHand);
         
-        updateScoreboardElement(trumpBadgeContainer, trumpColor, trumpColor);
+        beginRoundOneAutoPlayer();
     }
+}
+
+// sorts AutoPlayer hands in order of 14s, 13s, 12s, etc.
+function sortAutoPlayerHand(tempHand) {
+    let hand2 = [];
+
+    // goes through player hand and pushes cards to hand2, in order of 14s, 13s, 12s, etc.
+    for(let i in tempHand) {
+        if(tempHand[i] == 0) {
+            hand2.push(0);
+        } else if(tempHand[i] == 10) {
+            hand2.push(10);
+        } else if(tempHand[i] == 20) {
+            hand2.push(20);
+        } else if(tempHand[i] == 30) {
+            hand2.push(30);
+        } 
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 1) {
+            hand2.push(1);
+        } else if(tempHand[i] == 11) {
+            hand2.push(11);
+        } else if(tempHand[i] == 21) {
+            hand2.push(21);
+        } else if(tempHand[i] == 31) {
+            hand2.push(31);
+        }
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 2) {
+            hand2.push(2);
+        } else if(tempHand[i] == 12) {
+            hand2.push(12);
+        } else if(tempHand[i] == 22) {
+            hand2.push(22);
+        } else if(tempHand[i] == 32) {
+            hand2.push(32);
+        }
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 3) {
+            hand2.push(3);
+        } else if(tempHand[i] == 13) {
+            hand2.push(13);
+        } else if(tempHand[i] == 23) {
+            hand2.push(23);
+        } else if(tempHand[i] == 33) {
+            hand2.push(33);
+        }
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 4) {
+            hand2.push(4);
+        } else if(tempHand[i] == 14) {
+            hand2.push(14);
+        } else if(tempHand[i] == 24) {
+            hand2.push(24);
+        } else if(tempHand[i] == 34) {
+            hand2.push(34);
+        } 
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 5) {
+            hand2.push(5);
+        } else if(tempHand[i] == 15) {
+            hand2.push(15);
+        } else if(tempHand[i] == 25) {
+            hand2.push(25);
+        } else if(tempHand[i] == 35) {
+            hand2.push(35);
+        } 
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 6) {
+            hand2.push(6);
+        } else if(tempHand[i] == 16) {
+            hand2.push(16);
+        } else if(tempHand[i] == 26) {
+            hand2.push(26);
+        } else if(tempHand[i] == 36) {
+            hand2.push(36);
+        } 
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 7) {
+            hand2.push(7);
+        } else if(tempHand[i] == 17) {
+            hand2.push(17);
+        } else if(tempHand[i] == 27) {
+            hand2.push(27);
+        } else if(tempHand[i] == 37) {
+            hand2.push(37);
+        } 
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 8) {
+            hand2.push(8);
+        } else if(tempHand[i] == 18) {
+            hand2.push(18);
+        } else if(tempHand[i] == 28) {
+            hand2.push(28);
+        } else if(tempHand[i] == 38) {
+            hand2.push(38);
+        } 
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 9) {
+            hand2.push(9);
+        } else if(tempHand[i] == 19) {
+            hand2.push(19);
+        } else if(tempHand[i] == 29) {
+            hand2.push(29);
+        } else if(tempHand[i] == 39) {
+            hand2.push(39);
+        }
+    }
+
+    return hand2;
+}
+
+// discards four auto player cards and returns the new player hand array
+function discardFourAutoPlayerCards(hand) {
+    let hand2 = [];
+    let tempHand = [];
+
+    // push trump cards to hand2 and replace with a dummy value
+    for(let i in hand) {
+        if(trumpColor == 'Red') {
+            if(hand[i] >= 0 && hand[i] < 10) {
+                hand2.push(hand[i]);
+                hand[i] = 40;
+            }
+        } else if(trumpColor == 'Black') {
+            if(hand[i] >= 10 && hand[i] < 20) {
+                hand2.push(hand[i]);
+                hand[i] = 40;
+            }
+        } else if(trumpColor == 'Green') {
+            if(hand[i] >= 20 && hand[i] < 30) {
+                hand2.push(hand[i]);
+                hand[i] = 40;
+            }
+        } else {
+            if(hand[i] >= 30 && hand[i] < 40) {
+                hand2.push(hand[i]);
+                hand[i] = 40;
+            }
+        }
+    }
+
+    // pushes remaining non-trump cards to new temporary hand
+    for(let i in hand) {
+        if(hand[i] < 40) {
+            tempHand.push(hand[i]);
+        }
+    }
+
+    // goes through tempHand and pushes non-trump cards to hand2, in order of 14s, 13s, 12s, etc.
+    for(let i in tempHand) {
+        if(tempHand[i] == 0) {
+            hand2.push(0);
+        } else if(tempHand[i] == 10) {
+            hand2.push(10);
+        } else if(tempHand[i] == 20) {
+            hand2.push(20);
+        } else if(tempHand[i] == 30) {
+            hand2.push(30);
+        } 
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 1) {
+            hand2.push(1);
+        } else if(tempHand[i] == 11) {
+            hand2.push(11);
+        } else if(tempHand[i] == 21) {
+            hand2.push(21);
+        } else if(tempHand[i] == 31) {
+            hand2.push(31);
+        }
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 2) {
+            hand2.push(2);
+        } else if(tempHand[i] == 12) {
+            hand2.push(12);
+        } else if(tempHand[i] == 22) {
+            hand2.push(22);
+        } else if(tempHand[i] == 32) {
+            hand2.push(32);
+        }
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 3) {
+            hand2.push(3);
+        } else if(tempHand[i] == 13) {
+            hand2.push(13);
+        } else if(tempHand[i] == 23) {
+            hand2.push(23);
+        } else if(tempHand[i] == 33) {
+            hand2.push(33);
+        }
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 4) {
+            hand2.push(4);
+        } else if(tempHand[i] == 14) {
+            hand2.push(14);
+        } else if(tempHand[i] == 24) {
+            hand2.push(24);
+        } else if(tempHand[i] == 34) {
+            hand2.push(34);
+        } 
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 5) {
+            hand2.push(5);
+        } else if(tempHand[i] == 15) {
+            hand2.push(15);
+        } else if(tempHand[i] == 25) {
+            hand2.push(25);
+        } else if(tempHand[i] == 35) {
+            hand2.push(35);
+        } 
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 6) {
+            hand2.push(6);
+        } else if(tempHand[i] == 16) {
+            hand2.push(16);
+        } else if(tempHand[i] == 26) {
+            hand2.push(26);
+        } else if(tempHand[i] == 36) {
+            hand2.push(36);
+        } 
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 7) {
+            hand2.push(7);
+        } else if(tempHand[i] == 17) {
+            hand2.push(17);
+        } else if(tempHand[i] == 27) {
+            hand2.push(27);
+        } else if(tempHand[i] == 37) {
+            hand2.push(37);
+        } 
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 8) {
+            hand2.push(8);
+        } else if(tempHand[i] == 18) {
+            hand2.push(18);
+        } else if(tempHand[i] == 28) {
+            hand2.push(28);
+        } else if(tempHand[i] == 38) {
+            hand2.push(38);
+        } 
+    }
+    for(let i in tempHand) {
+        if(tempHand[i] == 9) {
+            hand2.push(9);
+        } else if(tempHand[i] == 19) {
+            hand2.push(19);
+        } else if(tempHand[i] == 29) {
+            hand2.push(29);
+        } else if(tempHand[i] == 39) {
+            hand2.push(39);
+        }
+    }
+    
+    // slice off the last 4 and put into the discards array
+    discards = hand2.slice(9, 13);
+
+    // slice off the first 9 and re-assign to hand2
+    hand2 = hand2.slice(0, 9);
+
+    return hand2;
 }
 
 // define function to handle the middle four
@@ -375,7 +680,236 @@ function revealPlayerHandAfterDiscard() {
     }
 }
 
-// define function to reveal player's hand and middle back slowly
+// handles Round One if auto player is highest bidder
+function beginRoundOneAutoPlayer() {
+    round = 1;
+    
+    const roundOneBeginningTimeout = setTimeout(() => {
+        updateCurrentStatus("The winning bidder will play first and set the trump color.");
+        middleFourContainer.innerHTML = "";
+        middleFourContainer.classList.add('invisible');
+    }, 1000);
+    timeoutArray.push(roundOneBeginningTimeout);
+
+    const showInnerGameTableTimeout = setTimeout(() => {
+        // show the inner game table container
+        innerGameTableContainer.classList.remove('invisible');
+    }, 3000);
+    timeoutArray.push(showInnerGameTableTimeout);
+
+    const playCardOneTimeout = setTimeout(() => {
+        playFirstTrumpAutoPlayer();
+    }, 5000);
+    timeoutArray.push(playCardOneTimeout);
+}
+
+// the first card of the game is played for AutoPlayers
+function playFirstTrumpAutoPlayer() {
+    
+
+    if(highestBidder == 'partner') {
+        // plays and displays the card
+        playCard('partner', partnerHand[0]);
+        // removes the card from hand
+        partnerHand.shift();
+
+        updateScoreboardElement(trumpBadgeContainer, trumpColor, trumpColor);
+
+        // update playing card info
+        leadColor = trumpColor;
+        leadPlayer = 'partner';
+
+        // sort rival1 and rival2 hands
+        rival1Hand = sortAutoPlayerHand(rival1Hand);
+        rival2Hand = sortAutoPlayerHand(rival2Hand);
+
+        // send over to rival1
+        const playRival1CardTimeout = setTimeout(() => {
+            playRival1Card();
+        }, 2000);
+        timeoutArray.push(playRival1CardTimeout);
+        
+
+    } else if(highestBidder == 'rival1') {
+        playCard('rival1', rival1Hand[0]);
+        rival1Hand.shift();
+        updateScoreboardElement(trumpBadgeContainer, trumpColor, trumpColor);
+
+        // update playing card info
+        leadColor = trumpColor;
+        leadPlayer = 'rival1';
+
+        // sort rival2 and partner hands
+        partnerHand = sortAutoPlayerHand(partnerHand);
+        rival2Hand = sortAutoPlayerHand(rival2Hand);
+
+        // send over to player
+
+
+    } else {
+        playCard('rival2', rival2Hand[0]);
+        rival2Hand.shift();
+        updateScoreboardElement(trumpBadgeContainer, trumpColor, trumpColor);
+
+        // update playing card info
+        leadColor = trumpColor;
+        leadPlayer = 'rival2';
+
+        // sort partner and rival1 hands
+        rival1Hand = sortAutoPlayerHand(rival1Hand);
+        partnerHand = sortAutoPlayerHand(partnerHand);
+
+        //send over to partner
+
+    }
+}
+
+
+// returns array of cards in a hand that match lead color
+function cardsThatMatchLeadColor(hand) {
+    let temp = [];
+    for(let i in hand) {
+        if(cardInfo[hand[i]].color == leadColor) {
+            temp.push(hand[i]);
+        }
+    }
+    return temp;
+}
+
+// calls display card, pushes to cardsPlayedThisRound
+function playCard(player, card) {
+    if(player == 'rival1') {
+        displayCard('rival1', card);
+        cardsPlayedThisRound.push(card);
+
+    } else if(player == 'rival2') {
+        displayCard('rival2', card);
+        cardsPlayedThisRound.push(card);
+
+    } else if(player == 'partner') {
+        displayCard('partner', card);
+        cardsPlayedThisRound.push(card);
+
+    } else if(player == 'player') {
+        displayCard('player', card);
+        cardsPlayedThisRound.push(card);
+    }
+}
+
+// handles the logic to choose which card rival1 will play
+function chooseRival1Card() {
+
+    // must play leadColor if in hand
+    let temp = cardsThatMatchLeadColor(rival1Hand);
+    console.log("rival1 hand is " + rival1Hand);
+    console.log("cards that match lead color are " + temp);
+
+    // if a match for leadColor is found
+    if(temp.length > 0) {
+
+        // play highest card that matches color
+        let index = rival1Hand.indexOf(temp[0]);
+        
+        // if it is a higher value card than lead color card, update leadPlayer
+        if(cardInfo[temp[0]].number > cardInfo[cardsPlayedThisRound[0]].number) {
+            console.log("lead player updated to rival1");
+            leadPlayer = 'rival1';
+        }        
+        playCard('rival1', rival1Hand[index]);
+        rival1Hand.splice(index, 1);
+
+    // no color match found
+    } else {
+        
+        // if it is a trump card, need to update lead player
+        // this is untested!!
+        if(rival1Hand[0].color == trumpColor) {
+            let tempArray = [];
+
+            // get any trump cards that might have been played
+            for(let i in cardsPlayedThisRound) {
+                if(cardInfo[cardsPlayedThisRound[i]].color == trumpColor) {
+                    tempArray.push(cardsPlayedThisRound[i]);
+                }
+            }
+
+            let myCardHigh = true;
+
+            for(let j in tempArray) {
+                if(cardInfo[tempArray[j]].number > rival1Hand[0].number) {
+                    myCardHigh = false;
+                }
+            }
+
+            if(myCardHigh) {
+                leadPlayer = 'rival1';
+                console.log("Trumped! lead player updated to " + rival1);
+            }
+        }
+
+        playCard('rival1', rival1Hand[0]);
+        rival1Hand.shift();
+    }
+}
+
+function playRival1Card() {
+
+    // if first player this round, play trump or high card
+    if(cardsPlayedThisRound.length == 0) {
+        playCard('rival1', rival1Hand[0]);
+        rival1Hand.shift();
+        leadColor = cardInfo[rival1Hand[0]].color;
+        leadPlayer = 'rival1';
+
+    // if 2nd, 3rd or 4th player
+    } else if(cardsPlayedThisRound.length < 4) {
+
+        chooseRival1Card();
+    }
+
+    // card has been played, now to decide where to next
+    if(cardsPlayedThisRound.length < 4) {
+        // need to send to player
+        console.log("send to player");
+    } else {
+        // round over, send to next round
+        console.log("send to next round");
+    }
+}
+
+// display a card to the screen
+function displayCard(player, card) {
+
+    if(player == 'partner') {
+        let j = cardInfo[card].img;
+        let k = `<img src="${j}" class="card">`;
+        // inserts img
+        partnerCardContainer.innerHTML = k;
+        partnerCardContainer.classList.remove('invisible');
+
+    } else if(player == 'rival1') {
+        let j = cardInfo[card].img;
+        let k = `<img src="${j}" class="card rival-card">`;
+        // inserts img
+        rival1CardContainer.innerHTML = k;
+        rival1CardContainer.classList.remove('invisible');
+
+    } else if(player == 'rival2') {
+        let j = cardInfo[card].img;
+        let k = `<img src="${j}" class="card rival-card">`;
+        // inserts img
+        rival2CardContainer.innerHTML = k;
+        rival2CardContainer.classList.remove('invisible');
+    } else if(player == 'player') {
+        let j = cardInfo[card].img;
+        let k = `<img src="${j}" class="card player-card">`;
+        // inserts img
+        playerCardContainer.innerHTML = k;
+        playerCardContainer.classList.remove('invisible');
+    }
+}
+
+// reveal player's hand and middle back slowly
 function revealPlayerHand() {
     updateCurrentStatus("Dealing cards...");
     let count = 0;
@@ -397,7 +931,7 @@ function revealPlayerHand() {
     }
 }
 
-// define function to look for 5 cards of one color
+// look for 5 cards of one color
 function hasFiveOneColor(hand) {
     let rCount = 0;
     let bCount = 0;
@@ -415,7 +949,7 @@ function hasFiveOneColor(hand) {
     return (rCount > 4 || bCount > 4 || gCount > 4 || yCount > 4);
 }
 
-// define function to choose Trump color for auto player
+// choose Trump color for auto player
 function chooseTrump(hand) {
 
     let rCount = 0;
@@ -468,7 +1002,7 @@ function chooseTrump(hand) {
     }
 }
 
-// define function to calculate max bid
+// calculate max bid
 function calculateMaxBid(hand) {
     // looks for four high cards
     if((hand.includes(0) && hand.includes(1) && hand.includes(2) && hand.includes(3)) || 
@@ -517,27 +1051,29 @@ function calculateMaxBid(hand) {
     }
 }
 
+// collect bids from the autoPlayers
 function collectBidsFromAutoPlayers() {
-    partnerBid = calculateMaxBid(partnerHand);
+    // partnerBid = calculateMaxBid(partnerHand);
+    partnerBid = 90;
     rival1Bid = calculateMaxBid(rival1Hand);
     rival2Bid = calculateMaxBid(rival2Hand);
 }
 
-// define function to clear setIntervals
+// clear setIntervals
 function clearMyIntervals() {
     for(let i in intervalArray) {
         clearInterval(intervalArray[i]);
     }
 }
 
-// define function to clear setTimeouts
+// clear setTimeouts
 function clearMyTimeouts() {
     for(let i in timeoutArray) {
         clearTimeout(timeoutArray[i]);
     }
 }
 
-// define function to handle the bidding process
+// handle the bidding process
 function handleBids() {
     
     // Partner is first bidder and player hasn't answered
@@ -826,7 +1362,7 @@ function handleBids() {
     }
 }
 
-// define function to prompt the player for their first bid
+// prompts the player for their first bid
 function promptPlayer() {
     let answer = prompt('Enter a bid between 0 and 100 in increments of 5.');
     if(answer >= 0 && answer <= 100 && (answer % 5 == 0)) {
@@ -850,7 +1386,7 @@ function promptPlayer() {
     }
 }
 
-// define function to prompt a player for a second time
+// prompts a player for a second time
 function promptPlayerSecondTime() {
     let answer = prompt('The highest bid is ' + currentBid + '. Enter a higher number if you want to increase the bid.');
     if(answer > currentBid && answer <= 100 && (answer % 5 == 0)) {
@@ -893,17 +1429,17 @@ function promptPlayerSecondTime() {
     }
 }
 
-// define function to update the current status element
+// update the current status element
 function updateCurrentStatus(text) {
     currentStatusElem.innerHTML = text;
 }
 
-// define function to update the current bid
+// update the current bid
 function updateCurrentBid(bid) {
     currentBidElem.innerHTML = bid;
 }
 
-// define startGame function
+// starts the game
 function startGame() {
     playGameButton.disabled = true;
     shuffleCards();
@@ -921,7 +1457,7 @@ function startGame() {
 
 }
 
-// define function to reset the game
+// resets the game
 function resetGame() {
     clearMyIntervals();
     clearMyTimeouts();
@@ -929,6 +1465,11 @@ function resetGame() {
     timeoutArray = [];
     middleFourContainer.innerHTML = "";
     playerHandContainer.innerHTML = "";
+    innerGameTableContainer.classList.add('invisible');
+    partnerCardContainer.classList.add('invisible');
+    rival1CardContainer.classList.add('invisible');
+    rival2CardContainer.classList.add('invisible');
+    playerCardContainer.classList.add('invisible');
     updateCurrentStatus("Click 'Play Game' button to start the game.");
     updateCurrentBid(0);
     usScore = 0;
@@ -952,6 +1493,12 @@ function resetGame() {
     canPlayerDiscard = false;
     canPlayerSelectCard = false;
     playGameButton.disabled = false;
+    round = 0;
+    leadColor = 'none';
+    leadPlayer = 'none';
+    cardsPlayedThisRound = [];
+    cardsWonByPlayerTeam = [];
+    cardsWonByRivalTeam = [];
 }
 
 
