@@ -9,6 +9,8 @@ for(let i = 0; i < 40; i++) {
 // initialize scoreboard variables
 let usScore = 0;
 let themScore = 0;
+let usScoreTotal = 0;
+let themScoreTotal = 0;
 let currentBid = 0;
 let trumpColor = 'None';
 
@@ -38,6 +40,7 @@ let hasPlayerAnswered = false;
 // initialize variables relating to player clicking on cards
 let canPlayerDiscard = false;
 let canPlayerSelectCard = false;
+let canPlayerSelectTrump = false;
 
 // initialize variables relating to playing cards
 let round = 0;
@@ -184,7 +187,7 @@ function dealMiddleCardsFront() {
     }
 }
 
-// define function to deal middle cards face down invisible
+// deal middle cards face down invisible
 function dealMiddleCards() {
     // reset last rounds middle
     middleFourContainer.innerHTML = "";
@@ -197,14 +200,12 @@ function dealMiddleCards() {
     }
 }
 
-// define function to reveal middle cards face down
+// reveal middle cards face down
 function revealMiddleCardsBack() {
     let count = 100;
 
     const middleBackInterval = setInterval(showMiddle, 400);
     intervalArray.push(middleBackInterval);
-
-    middleFourContainer.classList.remove('invisible');
 
     function showMiddle() {
         if(count < 104) {
@@ -220,7 +221,7 @@ function revealMiddleCardsBack() {
     }
 }
 
-// define function to reveal the middle cards front
+// reveal the middle cards front
 function revealMiddleCardsFront() {
     let count = 0;
 
@@ -245,12 +246,70 @@ function revealMiddleCardsFront() {
     }
 }
 
-// define function to handle card clicking
+// handle card clicks
 function handleCardClick(cardID) {
     
-    // handle selecting cards to play
-    if(canPlayerSelectCard) {
-        console.log("will handle");
+    // player chooses Trump card
+    if(canPlayerSelectCard && canPlayerSelectTrump) {
+
+        round = 1;
+        
+        let card = document.getElementById(cardID);
+        card.classList.add('invisible');
+        canPlayerSelectCard = false;
+        canPlayerSelectTrump = false;
+
+        updateCurrentStatus("&nbsp;");
+
+        leadPlayer = 'player';
+        leadColor = cardInfo[cardID].color;
+        trumpColor = leadColor;
+
+        playCard('player', cardID);
+
+        updateScoreboardElement(trumpBadgeContainer, trumpColor, trumpColor);
+
+        // send to rival2
+        const sendToRival2Timeout = setTimeout(() => {
+            playRival2Card();
+        }, 2000);
+        timeoutArray.push(sendToRival2Timeout);
+
+
+    // player chooses card
+    } else if(canPlayerSelectCard) {
+
+        // need to add logic to restrict what cards the player can choose
+        let card = document.getElementById(cardID);
+        card.classList.add('invisible');
+        canPlayerSelectCard = false;
+        
+        // if first player this round sets the leadColor and leadPlayer
+        if(cardsPlayedThisRound.length == 0) {
+        leadColor = cardInfo[cardID].color;
+        leadPlayer = 'player';
+        }
+
+        playCard('player', cardID);
+
+        // send to rival2 or send to next round
+        if(cardsPlayedThisRound.length < 4) {
+            const sendToRival2Timeout = setTimeout(() => {
+                playRival2Card();
+            }, 2000);
+            timeoutArray.push(sendToRival2Timeout);
+        } else {
+
+            const updateWinnerTimeout = setTimeout(() => {
+                updateWinnerOfHand();
+            }, 1000);
+            timeoutArray.push(updateWinnerTimeout);
+
+            const beginNextRoundTimeout = setTimeout(() => {
+                beginNextRound();
+            }, 2000);
+            timeoutArray.push(beginNextRoundTimeout);
+        }
 
     // handle discarding of four cards
     } else if(canPlayerDiscard) {
@@ -281,7 +340,6 @@ function handleCardClick(cardID) {
                 // clears middle and player hand card elements
                 middleFourContainer.innerHTML = "";
                 playerHandContainer.innerHTML = "";
-                middleFourContainer.classList.add('invisible');
 
                 // invisibly deals the player hand
                 dealPlayerHand();
@@ -677,7 +735,9 @@ function revealPlayerHandAfterDiscard() {
         } else {
             clearInterval(playerHandSecondInterval);
 
-            // need a handler here
+            updateCurrentStatus("Select your first card to play.");
+            innerGameTableContainer.classList.remove('invisible');
+            playerSelectTrump();
         }
     }
 }
@@ -689,7 +749,7 @@ function beginRoundOneAutoPlayer() {
     const roundOneBeginningTimeout = setTimeout(() => {
         updateCurrentStatus("The winning bidder will play first and set the trump color.");
         middleFourContainer.innerHTML = "";
-        middleFourContainer.classList.add('invisible');
+
     }, 1000);
     timeoutArray.push(roundOneBeginningTimeout);
 
@@ -708,7 +768,6 @@ function beginRoundOneAutoPlayer() {
 // the first card of the game is played for AutoPlayers
 function playFirstTrumpAutoPlayer() {
     
-
     if(highestBidder == 'partner') {
         // plays and displays the card
         playCard('partner', partnerHand[0]);
@@ -746,7 +805,7 @@ function playFirstTrumpAutoPlayer() {
         rival2Hand = sortAutoPlayerHand(rival2Hand);
 
         // send over to player
-
+        playPlayerCard();
 
     } else {
         playCard('rival2', rival2Hand[0]);
@@ -762,10 +821,12 @@ function playFirstTrumpAutoPlayer() {
         partnerHand = sortAutoPlayerHand(partnerHand);
 
         //send over to partner
-
+        const sendToPartnerTimeout = setTimeout(() => {
+            playPartnerCard();
+        }, 2000);
+        timeoutArray.push(sendToPartnerTimeout);
     }
 }
-
 
 // returns array of cards in a hand that match lead color
 function cardsThatMatchLeadColor(hand) {
@@ -778,7 +839,7 @@ function cardsThatMatchLeadColor(hand) {
     return temp;
 }
 
-// calls display card, pushes to cardsPlayedThisRound
+// pushes to cardsPlayedThisRound, calls displayCard function
 function playCard(player, card) {
     if(player == 'rival1') {
         cardsPlayedThisRound.push(card);
@@ -833,8 +894,6 @@ function chooseRival1Card() {
 
     // must play leadColor if in hand
     let temp = cardsThatMatchLeadColor(rival1Hand);
-    console.log("rival1 hand is " + rival1Hand);
-    console.log("cards that match lead color are " + temp);
 
     // if a match for leadColor is found
     if(temp.length > 0) {
@@ -889,10 +948,10 @@ function playRival1Card() {
     // if first player this round, play trump or high card
     if(cardsPlayedThisRound.length == 0) {
         playCard('rival1', rival1Hand[0]);
-        rival1Hand.shift();
         leadColor = cardInfo[rival1Hand[0]].color;
         leadPlayer = 'rival1';
-
+        rival1Hand.shift(); 
+        
     // if 2nd, 3rd or 4th player
     } else if(cardsPlayedThisRound.length < 4) {
 
@@ -902,11 +961,378 @@ function playRival1Card() {
     // card has been played, now to decide where to next
     if(cardsPlayedThisRound.length < 4) {
         // need to send to player
-        console.log("send to player");
+        playPlayerCard();
+        
     } else {
-        // round over, send to next round
-        console.log("send to next round");
+
+        const updateWinnerTimeout = setTimeout(() => {
+            updateWinnerOfHand();
+        }, 1000);
+        timeoutArray.push(updateWinnerTimeout);
+
+        const beginNextRoundTimeout = setTimeout(() => {
+            beginNextRound();
+        }, 2000);
+        timeoutArray.push(beginNextRoundTimeout);
     }
+}
+
+function playRival2Card() {
+
+    // if first player this round, play trump or high card
+    if(cardsPlayedThisRound.length == 0) {
+        playCard('rival2', rival2Hand[0]);
+        leadColor = cardInfo[rival2Hand[0]].color;
+        leadPlayer = 'rival2';
+        rival2Hand.shift();      
+        
+
+    // if 2nd, 3rd or 4th player
+    } else if(cardsPlayedThisRound.length < 4) {
+
+        chooseRival2Card();
+    }
+
+    // card has been played, now to decide where to next
+    if(cardsPlayedThisRound.length < 4) {
+
+        // need to send to partner
+        const sendToPartnerTimeout = setTimeout(() => {
+            playPartnerCard();
+        }, 2000);
+        timeoutArray.push(sendToPartnerTimeout);
+        
+    } else {
+
+        const updateWinnerTimeout = setTimeout(() => {
+            updateWinnerOfHand();
+        }, 1000);
+        timeoutArray.push(updateWinnerTimeout);
+
+        const beginNextRoundTimeout = setTimeout(() => {
+            beginNextRound();
+        }, 2000);
+        timeoutArray.push(beginNextRoundTimeout);
+    }
+}
+
+function chooseRival2Card() {
+
+    // must play leadColor if in hand
+    let temp = cardsThatMatchLeadColor(rival2Hand);
+
+    // if a match for leadColor is found
+    if(temp.length > 0) {
+
+        // play highest card that matches color
+        let index = rival2Hand.indexOf(temp[0]);
+        
+        // if it is a higher value card than lead color card, update leadPlayer
+        if(cardInfo[temp[0]].number > cardInfo[cardsPlayedThisRound[0]].number) {
+            console.log("lead player updated to rival2");
+            leadPlayer = 'rival2';
+        }        
+        playCard('rival2', rival2Hand[index]);
+        rival2Hand.splice(index, 1);
+
+    // no color match found
+    } else {
+        
+        // if it is a trump card, need to update lead player
+        // this is untested!!
+        if(rival2Hand[0].color == trumpColor) {
+            let tempArray = [];
+
+            // get any trump cards that might have been played
+            for(let i in cardsPlayedThisRound) {
+                if(cardInfo[cardsPlayedThisRound[i]].color == trumpColor) {
+                    tempArray.push(cardsPlayedThisRound[i]);
+                }
+            }
+
+            let myCardHigh = true;
+
+            for(let j in tempArray) {
+                if(cardInfo[tempArray[j]].number > rival2Hand[0].number) {
+                    myCardHigh = false;
+                }
+            }
+
+            if(myCardHigh) {
+                leadPlayer = 'rival2';
+                console.log("Trumped! lead player updated to " + rival2);
+            }
+        }
+
+        playCard('rival2', rival2Hand[0]);
+        rival2Hand.shift();
+    }
+}
+
+function playPartnerCard() {
+    // if first player this round, play trump or high card
+    if(cardsPlayedThisRound.length == 0) {
+        playCard('partner', partnerHand[0]);
+        leadColor = cardInfo[partnerHand[0]].color;
+        leadPlayer = 'partner';
+        partnerHand.shift();
+        
+    // if 2nd, 3rd or 4th player
+    } else if(cardsPlayedThisRound.length < 4) {
+
+        choosePartnerCard();
+    }
+
+    // card has been played, now to decide where to next
+    if(cardsPlayedThisRound.length < 4) {
+
+        // need to send to rival1
+        const sendToRival1Timeout = setTimeout(() => {
+            playRival1Card();
+        }, 2000);
+        timeoutArray.push(sendToRival1Timeout);
+
+    } else {
+
+        const updateWinnerTimeout = setTimeout(() => {
+            updateWinnerOfHand();
+        }, 1000);
+        timeoutArray.push(updateWinnerTimeout);
+
+        const beginNextRoundTimeout = setTimeout(() => {
+            beginNextRound();
+        }, 2000);
+        timeoutArray.push(beginNextRoundTimeout);
+    }
+}
+
+function choosePartnerCard() {
+    // must play leadColor if in hand
+    let temp = cardsThatMatchLeadColor(partnerHand);
+
+    // if a match for leadColor is found
+    if(temp.length > 0) {
+
+        // play highest card that matches color
+        let index = partnerHand.indexOf(temp[0]);
+        
+        // if it is a higher value card than lead color card, update leadPlayer
+        if(cardInfo[temp[0]].number > cardInfo[cardsPlayedThisRound[0]].number) {
+            console.log("lead player updated to partner");
+            leadPlayer = 'partner';
+        }        
+        playCard('partner', partnerHand[index]);
+        partnerHand.splice(index, 1);
+
+    // no color match found
+    } else {
+        
+        // if it is a trump card, need to update lead player
+        // this is untested!!
+        if(partnerHand[0].color == trumpColor) {
+            let tempArray = [];
+
+            // get any trump cards that might have been played
+            for(let i in cardsPlayedThisRound) {
+                if(cardInfo[cardsPlayedThisRound[i]].color == trumpColor) {
+                    tempArray.push(cardsPlayedThisRound[i]);
+                }
+            }
+
+            let myCardHigh = true;
+
+            for(let j in tempArray) {
+                if(cardInfo[tempArray[j]].number > partnerHand[0].number) {
+                    myCardHigh = false;
+                }
+            }
+
+            if(myCardHigh) {
+                leadPlayer = 'partner';
+                console.log("Trumped! lead player updated to " + partner);
+            }
+        }
+
+        playCard('partner', partnerHand[0]);
+        partnerHand.shift();
+    }
+}
+
+function playPlayerCard() {
+    canPlayerSelectCard = true;
+    // go to handleCardClick for the logic
+}
+
+function playerSelectTrump() {
+    canPlayerSelectCard = true;
+    canPlayerSelectTrump = true;
+}
+
+function updateWinnerOfHand() {
+    // update with who won the hand
+    if(leadPlayer == 'partner') {
+        updateCurrentStatus("Your partner takes the hand!");
+    } else if(leadPlayer == 'rival1') {
+        updateCurrentStatus("Rival #1 takes the hand!");
+    } else if(leadPlayer == 'rival2') {
+        updateCurrentStatus("Rival #2 takes the hand!");
+    } else {
+        updateCurrentStatus("You take the hand!");
+    }
+}
+
+function beginNextRound() {
+    
+    // add up the points
+    addUpCardsPlayedThisRound();
+
+    // clear from the display
+    clearPlayedCards();
+
+    cardsPlayedThisRound = [];
+    round++;
+
+    if(round < 10) {
+
+        // remove winner of last hand from status message
+        const removeMessageTimeout = setTimeout(() => {
+            updateCurrentStatus("&nbsp;");
+        }, 4000);
+        timeoutArray.push(removeMessageTimeout);
+        
+        // send to the leadPlayer
+        if(leadPlayer == 'partner') {
+
+            const sendToPartnerTimeout = setTimeout(() => {
+                playPartnerCard();
+            }, 2000);
+            timeoutArray.push(sendToPartnerTimeout);
+        } else if(leadPlayer == 'rival1') {
+
+            const sendToRival1Timeout = setTimeout(() => {
+                playRival1Card();
+            }, 2000);
+            timeoutArray.push(sendToRival1Timeout);
+        } else if(leadPlayer == 'rival2') {
+
+            const sendToRival2Timeout = setTimeout(() => {
+                playRival2Card();
+            }, 2000);
+            timeoutArray.push(sendToRival2Timeout);
+        } else {
+
+            const sendToPlayerTimeout = setTimeout(() => {
+                playPlayerCard();
+            }, 2000);
+            timeoutArray.push(sendToPlayerTimeout);
+        }
+
+    } else {
+        
+        let sum = addUpDiscards();
+        if(highestBidder == 'partner' || highestBidder == 'player') {
+            usScore += sum;
+        } else {
+            themScore += sum;
+        }
+
+        // figure out if winning bidder met their bid
+        // partner is the highest bidder
+        if(highestBidder == 'partner') {
+            if(usScore >= partnerBid) {
+                usScoreTotal += usScore;
+                themScoreTotal += themScore;
+                updateScoreboardElement(usScoreElem, usScoreTotal);
+                updateScoreboardElement(themScoreElem, themScoreTotal);
+                updateCurrentStatus("Your partner has met their bid. You scored " + usScore + " points! Your rivals scored " + themScore + " points.");
+
+            } else {
+                usScoreTotal -= partnerBid;
+                themScoreTotal += themScore;
+                updateScoreboardElement(usScoreElem, usScoreTotal);
+                updateScoreboardElement(themScoreElem, themScoreTotal);
+                updateCurrentStatus("Bid not met! Your score was deducted by " + partnerBid + " points. Your rivals scored " + themScore + " points.");
+            }
+
+        // player is the highest bidder
+        } else if(highestBidder == 'player') {
+            if(usScore >= playerBid) {
+                usScoreTotal += usScore;
+                themScoreTotal += themScore;
+                updateScoreboardElement(usScoreElem, usScoreTotal);
+                updateScoreboardElement(themScoreElem, themScoreTotal);
+                updateCurrentStatus("You met the bid. You scored " + usScore + " points! Your rivals scored " + themScore + " points.");
+
+            } else {
+                usScoreTotal -= playerBid;
+                themScoreTotal += themScore;
+                updateScoreboardElement(usScoreElem, usScoreTotal);
+                updateScoreboardElement(themScoreElem, themScoreTotal);
+                updateCurrentStatus("Bid not met! Your score was deducted by " + playerBid + " points. Your rivals scored " + themScore + " points.");
+            }
+
+        // rival1 is the highest bidder
+        } else if(highestBidder == 'rival1') {
+            if(themScore >= rival1Bid) {
+                themScoreTotal += themScore;
+                usScoreTotal += usScore;
+                updateScoreboardElement(usScoreElem, usScoreTotal);
+                updateScoreboardElement(themScoreElem, themScoreTotal);
+                updateCurrentStatus("Rival #1 met their bid. They scored " + themScore + " points. You scored " + usScore + " points.");
+            } else {
+                themScoreTotal -= rival1Bid;
+                usScoreTotal += usScore;
+                updateScoreboardElement(usScoreElem, usScoreTotal);
+                updateScoreboardElement(themScoreElem, themScoreTotal);
+                updateCurrentStatus("Bid not met! Their score was deducted by " + rival1Bid + " points. You scored " + usScore + " points.");
+            }
+        
+        // rival2 is the highest bidder
+        } else if(highestBidder == 'rival2') {
+            if(themScore >= rival2Bid) {
+                themScoreTotal += themScore;
+                usScoreTotal += usScore;
+                updateScoreboardElement(usScoreElem, usScoreTotal);
+                updateScoreboardElement(themScoreElem, themScoreTotal);
+                updateCurrentStatus("Rival #2 met their bid. They scored " + themScore + " points. You scored " + usScore + " points.");
+            } else {
+                themScoreTotal -= rival2Bid;
+                usScoreTotal += usScore;
+                updateScoreboardElement(usScoreElem, usScoreTotal);
+                updateScoreboardElement(themScoreElem, themScoreTotal);
+                updateCurrentStatus("Bid not met! Their score was deducted by " + rival2Bid + " points. You scored " + usScore + " points.");
+            }
+        }
+    }
+}
+ // adds up the discard pile and returns the sum
+function addUpDiscards() {
+    let sum = 0;
+    for(let i in discards) {
+        sum += cardInfo[discards[i]].pointValue;
+    }
+    return sum;
+}
+
+function addUpCardsPlayedThisRound() {
+    if(leadPlayer == 'player' || leadPlayer == 'partner') {
+        for(let i in cardsPlayedThisRound) {
+            usScore += cardInfo[cardsPlayedThisRound[i]].pointValue;          
+        }
+
+    } else {
+        for(let i in cardsPlayedThisRound) {
+            themScore += cardInfo[cardsPlayedThisRound[i]].pointValue;
+        }
+    }
+}
+
+// clear played cards from the display
+function clearPlayedCards() {
+    partnerCardContainer.innerHTML = "";
+    rival1CardContainer.innerHTML = "";
+    playerCardContainer.innerHTML = "";
+    rival2CardContainer.innerHTML = "";
 }
 
 // reveal player's hand and middle back slowly
@@ -1054,7 +1480,7 @@ function calculateMaxBid(hand) {
 // collect bids from the autoPlayers
 function collectBidsFromAutoPlayers() {
     // partnerBid = calculateMaxBid(partnerHand);
-    partnerBid = 90;
+    partnerBid = calculateMaxBid(partnerHand);
     rival1Bid = calculateMaxBid(rival1Hand);
     rival2Bid = calculateMaxBid(rival2Hand);
 }
@@ -1452,7 +1878,8 @@ function startGame() {
     collectBidsFromAutoPlayers();
 
     // player hand revealed => revealMiddleCardsBack => handleBids => promptPlayerSecondTime =>
-    // handleMiddleCardsFront => handleDiscarding (playerDiscarding or autoDiscarding)
+    // handleMiddleCardsFront => handleDiscarding (playerDiscarding or autoDiscarding) => beginRoundOneAutoPlayer
+    // playFirstTrumpAutoPlayer
     revealPlayerHand();
 
 }
@@ -1477,8 +1904,12 @@ function resetGame() {
 
     updateCurrentStatus("Click 'Play Game' button to start the game.");
     updateCurrentBid(0);
+    updateScoreboardElement(usScoreElem, 0);
+    updateScoreboardElement(themScoreElem, 0);
     usScore = 0;
     themScore = 0;
+    usScoreTotal = 0;
+    themScoreTotal = 0;
     currentBid = 0;
     playerBid = 0;
     partnerBid = 0;
@@ -1497,6 +1928,7 @@ function resetGame() {
     hasPlayerAnswered = false;
     canPlayerDiscard = false;
     canPlayerSelectCard = false;
+    canPlayerSelectTrump = false;
     playGameButton.disabled = false;
     round = 0;
     leadColor = 'none';

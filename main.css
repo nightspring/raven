@@ -35,11 +35,17 @@ header {
     text-align: center;
 }
 
-.logo-rules-container,
+.rules-container,
 .buttons-container,
 .score-container,
 .bid-container,
 .trump-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo-container {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -57,7 +63,7 @@ header {
 }
 
 .rules {
-    margin-left: 20px;
+    /* click event */
 }
 
 #rulesLink {
