@@ -47,6 +47,7 @@ let round = 0;
 let leadColor = 'none';
 let leadPlayer = 'none';
 let cardsPlayedThisRound = [];
+let trumped = false;
 let cardsWonByPlayerTeam = [];
 let cardsWonByRivalTeam = [];
 
@@ -265,6 +266,9 @@ function handleCardClick(cardID) {
         leadColor = cardInfo[cardID].color;
         trumpColor = leadColor;
 
+        let index = playerHand.indexOf(cardID);
+        playerHand.splice(index, 1);
+
         playCard('player', cardID);
 
         updateScoreboardElement(trumpBadgeContainer, trumpColor, trumpColor);
@@ -279,38 +283,104 @@ function handleCardClick(cardID) {
     // player chooses card
     } else if(canPlayerSelectCard) {
 
-        // need to add logic to restrict what cards the player can choose
         let card = document.getElementById(cardID);
-        card.classList.add('invisible');
-        canPlayerSelectCard = false;
-        
+        let colorMatch = cardsThatMatchLeadColor(playerHand);
+
         // if first player this round sets the leadColor and leadPlayer
         if(cardsPlayedThisRound.length == 0) {
-        leadColor = cardInfo[cardID].color;
-        leadPlayer = 'player';
-        }
+            leadColor = cardInfo[cardID].color;
+            leadPlayer = 'player';
+            
+            let index = playerHand.indexOf(cardID);
+            playerHand.splice(index, 1);
 
-        playCard('player', cardID);
+            card.classList.add('invisible');
+            canPlayerSelectCard = false;           
+            playCard('player', cardID);
+            playerSendsToRival2();
 
-        // send to rival2 or send to next round
-        if(cardsPlayedThisRound.length < 4) {
-            const sendToRival2Timeout = setTimeout(() => {
-                playRival2Card();
-            }, 2000);
-            timeoutArray.push(sendToRival2Timeout);
+        } // if player has color matching leadColor, must play that color
+        else if(colorMatch.length > 0) {
+
+            //card matches color
+            if(cardInfo[cardID].color == leadColor) {
+                
+                // no trumps this round
+                if(!trumped) {
+
+                    let myCardHigh = true;
+
+                    // if there is a higher card of matching leadColor, then myCardHigh is false
+                    let tempColorArray = [];
+                    for(let j in cardsPlayedThisRound) {
+                        if(cardInfo[cardsPlayedThisRound[j]].color == leadColor) {
+                            tempColorArray.push(cardsPlayedThisRound[j]);
+                        }
+                    }
+
+                    for(let i in tempColorArray) {
+
+                        if(cardInfo[tempColorArray[i]].number > cardInfo[cardID].number) {
+                            myCardHigh = false;
+                        }
+                    }
+                    if(myCardHigh) {
+                        leadPlayer = 'player';
+                    }
+                }
+
+            let index = playerHand.indexOf(cardID);
+            playerHand.splice(index, 1);
+
+            card.classList.add('invisible');
+            canPlayerSelectCard = false;
+            playCard('player', cardID);
+            playerSendsToRival2(); 
+            // player needs to choose a different card with same color as lead
+            } else {
+                updateCurrentStatus('Please select a card that matches the lead color.');
+            }
+
+        // player doesn't have matching color, need to check for trumps
         } else {
 
-            const updateWinnerTimeout = setTimeout(() => {
-                updateWinnerOfHand();
-            }, 1000);
-            timeoutArray.push(updateWinnerTimeout);
+            // if a trump has already been played, compare against those/that
+            if(trumped && cardInfo[cardID].color == trumpColor) {
+                let temp = [];
+                for(let i in cardsPlayedThisRound) {
+                    if(cardInfo[cardsPlayedThisRound[i]].color == trumpColor) {
+                        temp.push(cardsPlayedThisRound[i]);
+                    }
+                }
+                let myCardHigh = true;
+                for(let j in temp) {
+                    if(cardInfo[temp[j]].number > cardInfo[cardID].number) {
+                       myCardHigh = false;
+                       console.log("User played a trump but it wasn't highest");
+                    }                      
+                }
+                if(myCardHigh) {
+                    leadPlayer = 'player';
+                    console.log('A new high trump!');
+                }
+            // first trump played this round
+            } else if(cardInfo[cardID].color == trumpColor) {
+                trumped = true;
+                leadPlayer = 'player';
+                console.log("Trumped! First trump played.");
+            }
 
-            const beginNextRoundTimeout = setTimeout(() => {
-                beginNextRound();
-            }, 2000);
-            timeoutArray.push(beginNextRoundTimeout);
+            // play selected card
+            // if not a high trump or high card matching color, nothing gets updated about leadPlayer
+            let index = playerHand.indexOf(cardID);
+            playerHand.splice(index, 1);
+
+            card.classList.add('invisible');
+            canPlayerSelectCard = false;
+            playCard('player', cardID);
+            playerSendsToRival2(); 
         }
-
+            
     // handle discarding of four cards
     } else if(canPlayerDiscard) {
         // adds card to discard array and makes it invsibile
@@ -350,6 +420,27 @@ function handleCardClick(cardID) {
             }, 1000);
             timeoutArray.push(clearHandsAndMiddleTimeout);
         }
+    }
+}
+
+function playerSendsToRival2() {
+    // send to rival2 or send to next round
+    if(cardsPlayedThisRound.length < 4) {
+        const sendToRival2Timeout = setTimeout(() => {
+            playRival2Card();
+        }, 2000);
+        timeoutArray.push(sendToRival2Timeout);
+    } else {
+
+        const updateWinnerTimeout = setTimeout(() => {
+            updateWinnerOfHand();
+        }, 1000);
+        timeoutArray.push(updateWinnerTimeout);
+
+        const beginNextRoundTimeout = setTimeout(() => {
+            beginNextRound();
+        }, 2000);
+        timeoutArray.push(beginNextRoundTimeout);
     }
 }
 
@@ -889,60 +980,6 @@ function displayCard(player, card) {
     }
 }
 
-// handles the logic to choose which card rival1 will play
-function chooseRival1Card() {
-
-    // must play leadColor if in hand
-    let temp = cardsThatMatchLeadColor(rival1Hand);
-
-    // if a match for leadColor is found
-    if(temp.length > 0) {
-
-        // play highest card that matches color
-        let index = rival1Hand.indexOf(temp[0]);
-        
-        // if it is a higher value card than lead color card, update leadPlayer
-        if(cardInfo[temp[0]].number > cardInfo[cardsPlayedThisRound[0]].number) {
-            console.log("lead player updated to rival1");
-            leadPlayer = 'rival1';
-        }        
-        playCard('rival1', rival1Hand[index]);
-        rival1Hand.splice(index, 1);
-
-    // no color match found
-    } else {
-        
-        // if it is a trump card, need to update lead player
-        // this is untested!!
-        if(rival1Hand[0].color == trumpColor) {
-            let tempArray = [];
-
-            // get any trump cards that might have been played
-            for(let i in cardsPlayedThisRound) {
-                if(cardInfo[cardsPlayedThisRound[i]].color == trumpColor) {
-                    tempArray.push(cardsPlayedThisRound[i]);
-                }
-            }
-
-            let myCardHigh = true;
-
-            for(let j in tempArray) {
-                if(cardInfo[tempArray[j]].number > rival1Hand[0].number) {
-                    myCardHigh = false;
-                }
-            }
-
-            if(myCardHigh) {
-                leadPlayer = 'rival1';
-                console.log("Trumped! lead player updated to " + rival1);
-            }
-        }
-
-        playCard('rival1', rival1Hand[0]);
-        rival1Hand.shift();
-    }
-}
-
 function playRival1Card() {
 
     // if first player this round, play trump or high card
@@ -955,7 +992,7 @@ function playRival1Card() {
     // if 2nd, 3rd or 4th player
     } else if(cardsPlayedThisRound.length < 4) {
 
-        chooseRival1Card();
+        chooseAutoPlayerCard(rival1Hand, 'rival1', 'rival2');
     }
 
     // card has been played, now to decide where to next
@@ -990,7 +1027,7 @@ function playRival2Card() {
     // if 2nd, 3rd or 4th player
     } else if(cardsPlayedThisRound.length < 4) {
 
-        chooseRival2Card();
+        chooseAutoPlayerCard(rival2Hand, 'rival2', 'rival1');
     }
 
     // card has been played, now to decide where to next
@@ -1015,60 +1052,6 @@ function playRival2Card() {
         timeoutArray.push(beginNextRoundTimeout);
     }
 }
-
-function chooseRival2Card() {
-
-    // must play leadColor if in hand
-    let temp = cardsThatMatchLeadColor(rival2Hand);
-
-    // if a match for leadColor is found
-    if(temp.length > 0) {
-
-        // play highest card that matches color
-        let index = rival2Hand.indexOf(temp[0]);
-        
-        // if it is a higher value card than lead color card, update leadPlayer
-        if(cardInfo[temp[0]].number > cardInfo[cardsPlayedThisRound[0]].number) {
-            console.log("lead player updated to rival2");
-            leadPlayer = 'rival2';
-        }        
-        playCard('rival2', rival2Hand[index]);
-        rival2Hand.splice(index, 1);
-
-    // no color match found
-    } else {
-        
-        // if it is a trump card, need to update lead player
-        // this is untested!!
-        if(rival2Hand[0].color == trumpColor) {
-            let tempArray = [];
-
-            // get any trump cards that might have been played
-            for(let i in cardsPlayedThisRound) {
-                if(cardInfo[cardsPlayedThisRound[i]].color == trumpColor) {
-                    tempArray.push(cardsPlayedThisRound[i]);
-                }
-            }
-
-            let myCardHigh = true;
-
-            for(let j in tempArray) {
-                if(cardInfo[tempArray[j]].number > rival2Hand[0].number) {
-                    myCardHigh = false;
-                }
-            }
-
-            if(myCardHigh) {
-                leadPlayer = 'rival2';
-                console.log("Trumped! lead player updated to " + rival2);
-            }
-        }
-
-        playCard('rival2', rival2Hand[0]);
-        rival2Hand.shift();
-    }
-}
-
 function playPartnerCard() {
     // if first player this round, play trump or high card
     if(cardsPlayedThisRound.length == 0) {
@@ -1080,7 +1063,7 @@ function playPartnerCard() {
     // if 2nd, 3rd or 4th player
     } else if(cardsPlayedThisRound.length < 4) {
 
-        choosePartnerCard();
+        chooseAutoPlayerCard(partnerHand, 'partner', 'player');
     }
 
     // card has been played, now to decide where to next
@@ -1106,55 +1089,108 @@ function playPartnerCard() {
     }
 }
 
-function choosePartnerCard() {
+function chooseAutoPlayerCard(autoPlayerArray, playerName, teamMateName) {
+
+    // for debugging, add player's cards into array
+    let codeArray = [];
+    for(let c in autoPlayerArray) {
+        codeArray.push(cardInfo[autoPlayerArray[c]].code);
+    }
+    console.log(playerName + " " + codeArray);
+
     // must play leadColor if in hand
-    let temp = cardsThatMatchLeadColor(partnerHand);
+    let temp = cardsThatMatchLeadColor(autoPlayerArray);
+    
+    // if a match for leadColor is found and no trump cards
+    if(temp.length > 0 && !trumped) {
 
-    // if a match for leadColor is found
-    if(temp.length > 0) {
+        // play lowest card that matches color by default
+        let index = autoPlayerArray.indexOf(temp[temp.length - 1]);
 
-        // play highest card that matches color
-        let index = partnerHand.indexOf(temp[0]);
+        // if leadPlayer is teammate, play a point card
+        // breaks with highest point, so a 10 would be chosen over a 5
+        if(leadPlayer == teamMateName) {
+            for(let c in temp) {
+                if(cardInfo[temp[c]].pointValue > 0) {
+                    index = autoPlayerArray.indexOf(temp[c]);
+                    console.log("Card chosen to play points.");
+                    break;
+                }
+            }
+        }
+        // if it is a higher value card than highest lead color card, update leadPlayer
+        let myCardHigh = true;
+
+        // if there is a higher card of matching leadColor, then myCardHigh is false
+        let tempColorArray = [];
+        for(let j in cardsPlayedThisRound) {
+            if(cardInfo[cardsPlayedThisRound[j]].color == leadColor) {
+                tempColorArray.push(cardsPlayedThisRound[j]);
+            }
+        }
+
+        for(let i in tempColorArray) {
+            if(cardInfo[tempColorArray[i]].number > cardInfo[temp[0]].number) {
+                myCardHigh = false;
+            }
+        }
+        if(myCardHigh) {
+            index = autoPlayerArray.indexOf(temp[0]);
+            leadPlayer = playerName;
+        }
         
-        // if it is a higher value card than lead color card, update leadPlayer
-        if(cardInfo[temp[0]].number > cardInfo[cardsPlayedThisRound[0]].number) {
-            console.log("lead player updated to partner");
-            leadPlayer = 'partner';
-        }        
-        playCard('partner', partnerHand[index]);
-        partnerHand.splice(index, 1);
+        // card gets played here
+        playCard(playerName, autoPlayerArray[index]);
+        autoPlayerArray.splice(index, 1);
+
+    } else if(temp.length > 0 && trumped) {
+        let index = autoPlayerArray.indexOf(temp[temp.length - 1]);
+        playCard(playerName, autoPlayerArray[index]);
+        autoPlayerArray.splice(index, 1);
+        console.log(playerName + " has played a matching color card. But there was a trump already.");
 
     // no color match found
     } else {
         
         // if it is a trump card, need to update lead player
-        // this is untested!!
-        if(partnerHand[0].color == trumpColor) {
-            let tempArray = [];
+        if(cardInfo[autoPlayerArray[0]].color == trumpColor) {
 
-            // get any trump cards that might have been played
-            for(let i in cardsPlayedThisRound) {
-                if(cardInfo[cardsPlayedThisRound[i]].color == trumpColor) {
-                    tempArray.push(cardsPlayedThisRound[i]);
+            // if first trump then updated automatically
+            if(!trumped) {
+                console.log(playerName + " has played the first trump this round!");
+                leadPlayer = playerName;
+                trumped = true;
+            } else {
+
+                let tempArray = [];
+
+                // get any trump cards that might have been played
+                for(let i in cardsPlayedThisRound) {
+                    if(cardInfo[cardsPlayedThisRound[i]].color == trumpColor) {
+                        tempArray.push(cardsPlayedThisRound[i]);
+                    }
                 }
-            }
 
-            let myCardHigh = true;
+                console.log("Trump cards played this round: " + tempArray);
 
-            for(let j in tempArray) {
-                if(cardInfo[tempArray[j]].number > partnerHand[0].number) {
-                    myCardHigh = false;
+                let myCardHigh = true;
+
+                for(let j in tempArray) {
+                    if(cardInfo[tempArray[j]].number > cardInfo[autoPlayerArray[0]].number) {
+                        myCardHigh = false;
+                        console.log(playerName + "'s trump card wasn't highest.");
+                    }
                 }
-            }
 
-            if(myCardHigh) {
-                leadPlayer = 'partner';
-                console.log("Trumped! lead player updated to " + partner);
+                if(myCardHigh) {
+                    leadPlayer = playerName;
+                    console.log("Trumped with a higher card! lead player updated to " + playerName);
+                }
             }
         }
 
-        playCard('partner', partnerHand[0]);
-        partnerHand.shift();
+        playCard(playerName, autoPlayerArray[0]);
+        autoPlayerArray.shift();
     }
 }
 
@@ -1191,13 +1227,14 @@ function beginNextRound() {
 
     cardsPlayedThisRound = [];
     round++;
+    trumped = false;
 
     if(round < 10) {
 
         // remove winner of last hand from status message
         const removeMessageTimeout = setTimeout(() => {
             updateCurrentStatus("&nbsp;");
-        }, 4000);
+        }, 3000);
         timeoutArray.push(removeMessageTimeout);
         
         // send to the leadPlayer
@@ -1221,10 +1258,8 @@ function beginNextRound() {
             timeoutArray.push(sendToRival2Timeout);
         } else {
 
-            const sendToPlayerTimeout = setTimeout(() => {
-                playPlayerCard();
-            }, 2000);
-            timeoutArray.push(sendToPlayerTimeout);
+            playPlayerCard();
+            
         }
 
     } else {
@@ -1934,6 +1969,7 @@ function resetGame() {
     leadColor = 'none';
     leadPlayer = 'none';
     cardsPlayedThisRound = [];
+    trumped = false;
     cardsWonByPlayerTeam = [];
     cardsWonByRivalTeam = [];
 }
