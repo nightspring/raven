@@ -356,18 +356,15 @@ function handleCardClick(cardID) {
                 for(let j in temp) {
                     if(cardInfo[temp[j]].number > cardInfo[cardID].number) {
                        myCardHigh = false;
-                       console.log("User played a trump but it wasn't highest");
                     }                      
                 }
                 if(myCardHigh) {
                     leadPlayer = 'player';
-                    console.log('A new high trump!');
                 }
             // first trump played this round
             } else if(cardInfo[cardID].color == trumpColor) {
                 trumped = true;
                 leadPlayer = 'player';
-                console.log("Trumped! First trump played.");
             }
 
             // play selected card
@@ -1113,11 +1110,21 @@ function chooseAutoPlayerCard(autoPlayerArray, playerName, teamMateName) {
             for(let c in temp) {
                 if(cardInfo[temp[c]].pointValue > 0) {
                     index = autoPlayerArray.indexOf(temp[c]);
-                    console.log("Card chosen to play points.");
                     break;
                 }
             }
         }
+
+        // if leadPlayer is not teammate, try to play a non-point low card
+        if(leadPlayer != teamMateName) {
+            for(let i = temp.length - 1; i >= 0; i--) {
+                if(cardInfo[temp[i]].pointValue == 0) {
+                    index = autoPlayerArray.indexOf(temp[i]);
+                    break;                   
+                }
+            }
+        }
+
         // if it is a higher value card than highest lead color card, update leadPlayer
         let myCardHigh = true;
 
@@ -1134,6 +1141,8 @@ function chooseAutoPlayerCard(autoPlayerArray, playerName, teamMateName) {
                 myCardHigh = false;
             }
         }
+
+        // if player has a high color card, it gets played no matter who is leadPlayer
         if(myCardHigh) {
             index = autoPlayerArray.indexOf(temp[0]);
             leadPlayer = playerName;
@@ -1144,53 +1153,127 @@ function chooseAutoPlayerCard(autoPlayerArray, playerName, teamMateName) {
         autoPlayerArray.splice(index, 1);
 
     } else if(temp.length > 0 && trumped) {
+        // low card chosen by default
         let index = autoPlayerArray.indexOf(temp[temp.length - 1]);
-        playCard(playerName, autoPlayerArray[index]);
-        autoPlayerArray.splice(index, 1);
-        console.log(playerName + " has played a matching color card. But there was a trump already.");
 
-    // no color match found
-    } else {
-        
-        // if it is a trump card, need to update lead player
-        if(cardInfo[autoPlayerArray[0]].color == trumpColor) {
-
-            // if first trump then updated automatically
-            if(!trumped) {
-                console.log(playerName + " has played the first trump this round!");
-                leadPlayer = playerName;
-                trumped = true;
-            } else {
-
-                let tempArray = [];
-
-                // get any trump cards that might have been played
-                for(let i in cardsPlayedThisRound) {
-                    if(cardInfo[cardsPlayedThisRound[i]].color == trumpColor) {
-                        tempArray.push(cardsPlayedThisRound[i]);
-                    }
-                }
-
-                console.log("Trump cards played this round: " + tempArray);
-
-                let myCardHigh = true;
-
-                for(let j in tempArray) {
-                    if(cardInfo[tempArray[j]].number > cardInfo[autoPlayerArray[0]].number) {
-                        myCardHigh = false;
-                        console.log(playerName + "'s trump card wasn't highest.");
-                    }
-                }
-
-                if(myCardHigh) {
-                    leadPlayer = playerName;
-                    console.log("Trumped with a higher card! lead player updated to " + playerName);
+        // if leadPlayer is not teammate, try to play a non-point low card
+        if(leadPlayer != teamMateName) {
+            for(let i = temp.length - 1; i >= 0; i--) {
+                if(cardInfo[temp[i]].pointValue == 0) {
+                    index = autoPlayerArray.indexOf(temp[i]);
+                    break;                   
                 }
             }
         }
 
-        playCard(playerName, autoPlayerArray[0]);
-        autoPlayerArray.shift();
+        // if teammate is the one who trumped, try to play points
+        if(leadPlayer == teamMateName) {
+            for(let c in temp) {
+                if(cardInfo[temp[c]].pointValue > 0) {
+                    index = autoPlayerArray.indexOf(temp[c]);
+                    break;
+                }
+            }
+        }
+
+        playCard(playerName, autoPlayerArray[index]);
+        autoPlayerArray.splice(index, 1);
+
+    // no color match found
+    } else {
+
+        // lowest card chosen by default
+        let index = autoPlayerArray.length - 1;
+        let playerTrumpArray = [];
+
+        for(let i in autoPlayerArray) {
+            if(cardInfo[autoPlayerArray[i]].color == trumpColor) {
+                playerTrumpArray.push(autoPlayerArray[i]);
+            }
+        }
+
+        // no trumps played yet
+        if(!trumped) {
+            // if player has a trump, play highest trump card
+            if(playerTrumpArray.length > 0) {
+                index = autoPlayerArray.indexOf(playerTrumpArray[0]);
+                leadPlayer = playerName;
+                trumped = true;
+
+            // play points if available
+            } else if(leadPlayer == teamMateName) {
+                for(let c = autoPlayerArray.length - 1; c >= 0; c--) {
+                    if(cardInfo[autoPlayerArray[c]].pointValue > 0) {
+                        index = c;
+                        break;
+                    }
+                }
+
+            // avoid playing points if possible
+            } else if(leadPlayer != teamMateName) {
+                for(let c = autoPlayerArray.length - 1; c >= 0; c--) {
+                    if(cardInfo[autoPlayerArray[c]].pointValue == 0) {
+                        index = c;
+                        break;
+                    }
+                }
+            }
+
+        // trump has been played already
+        } else if(trumped) {
+            // if player has a higher trump than has been played, play that regardless of leadPlayer
+            if(playerTrumpArray.length > 0) {
+                let isMyTrumpHigh = true;
+                let trumpCardsPlayed = [];
+
+                // get any trump cards that have been played
+                for(let i in cardsPlayedThisRound) {
+                    if(cardInfo[cardsPlayedThisRound[i]].color == trumpColor) {
+                        trumpCardsPlayed.push(cardsPlayedThisRound[i]);
+                    }
+                }
+
+                for(let j in trumpCardsPlayed) {
+                    if(cardInfo[trumpCardsPlayed[j]].number > cardInfo[playerTrumpArray[0]].number) {
+                        isMyTrumpHigh = false;
+                    }
+                }
+
+                // if player's trump is highest, play that
+                if(isMyTrumpHigh) {
+                    index = autoPlayerArray.indexOf(playerTrumpArray[0]);
+                    leadPlayer = playerName;
+                    playCard(playerName, autoPlayerArray[index]);
+                    autoPlayerArray.splice(index, 1);
+                    return;
+                }
+            } 
+
+            // teamMate trumped and player does not have a higher trump card
+            if(leadPlayer == teamMateName) {
+
+                // start from lower points to try and avoid playing 14s
+                for(let c = autoPlayerArray.length - 1; c >= 0; c--) {
+                    if(cardInfo[autoPlayerArray[c]].pointValue > 0) {
+                        index = c;
+                        break;
+                    }
+                }
+            // rival trumped, avoid playing points    
+            } else if(leadPlayer != teamMateName) {
+                for(let c = autoPlayerArray.length - 1; c >= 0; c--) {
+                    if(cardInfo[autoPlayerArray[c]].pointValue == 0 && cardInfo[autoPlayerArray[c]].color != trumpColor) {
+                        console.log("A rival trumped so I avoided playing points and a low trump card.");
+                        index = c;
+                        break;
+                    }
+                }
+            }
+        } 
+        
+        // if index reaches here unchanged plays low non-matching card by default
+        playCard(playerName, autoPlayerArray[index]);
+        autoPlayerArray.splice(index, 1);
     }
 }
 
