@@ -44,13 +44,12 @@ let canPlayerSelectTrump = false;
 
 // initialize variables relating to playing cards
 let round = 0;
+let set = 0;
 let leadColor = 'none';
 let leadPlayer = 'none';
 let cardsPlayedThisRound = [];
 let trumped = false;
-let cardsWonByPlayerTeam = [];
-let cardsWonByRivalTeam = [];
-
+let gameWon = false;
 
 // initialize scoreboard, status update, and game buttons
 const usScoreElem = document.querySelector('.usScore');
@@ -91,15 +90,6 @@ function shuffleCards() {
         cardsArray[i] = cardsArray[j];
         cardsArray[j] = temp;
     }
-}
-
-// define function to clear player hands and middle
-function clearHandsAndMiddle() {
-    playerHand = [];
-    partnerHand = [];
-    rival1Hand = [];
-    rival2Hand = [];
-    middle = [];
 }
 
 // define function to populate all player hands and middle
@@ -1088,13 +1078,6 @@ function playPartnerCard() {
 
 function chooseAutoPlayerCard(autoPlayerArray, playerName, teamMateName) {
 
-    // for debugging, add player's cards into array
-    let codeArray = [];
-    for(let c in autoPlayerArray) {
-        codeArray.push(cardInfo[autoPlayerArray[c]].code);
-    }
-    console.log(playerName + " " + codeArray);
-
     // must play leadColor if in hand
     let temp = cardsThatMatchLeadColor(autoPlayerArray);
     
@@ -1263,7 +1246,6 @@ function chooseAutoPlayerCard(autoPlayerArray, playerName, teamMateName) {
             } else if(leadPlayer != teamMateName) {
                 for(let c = autoPlayerArray.length - 1; c >= 0; c--) {
                     if(cardInfo[autoPlayerArray[c]].pointValue == 0 && cardInfo[autoPlayerArray[c]].color != trumpColor) {
-                        console.log("A rival trumped so I avoided playing points and a low trump card.");
                         index = c;
                         break;
                     }
@@ -1360,10 +1342,17 @@ function beginNextRound() {
             if(usScore >= partnerBid) {
                 usScoreTotal += usScore;
                 themScoreTotal += themScore;
-                updateScoreboardElement(usScoreElem, usScoreTotal);
-                updateScoreboardElement(themScoreElem, themScoreTotal);
-                updateCurrentStatus("Your partner has met their bid. You scored " + usScore + " points! Your rivals scored " + themScore + " points.");
 
+                if(usScoreTotal >= 300) {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("You've won the game! Congratulations!");
+                    gameWon = true;
+                } else {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("Your partner has met their bid. You scored " + usScore + " points! Your rivals scored " + themScore + " points.");
+                }              
             } else {
                 usScoreTotal -= partnerBid;
                 themScoreTotal += themScore;
@@ -1377,10 +1366,17 @@ function beginNextRound() {
             if(usScore >= playerBid) {
                 usScoreTotal += usScore;
                 themScoreTotal += themScore;
-                updateScoreboardElement(usScoreElem, usScoreTotal);
-                updateScoreboardElement(themScoreElem, themScoreTotal);
-                updateCurrentStatus("You met the bid. You scored " + usScore + " points! Your rivals scored " + themScore + " points.");
 
+                if(usScoreTotal >= 300) {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("You've won the game! Congratulations!");
+                    gameWon = true;
+                } else {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("You met the bid. You scored " + usScore + " points! Your rivals scored " + themScore + " points.");
+                }
             } else {
                 usScoreTotal -= playerBid;
                 themScoreTotal += themScore;
@@ -1394,9 +1390,17 @@ function beginNextRound() {
             if(themScore >= rival1Bid) {
                 themScoreTotal += themScore;
                 usScoreTotal += usScore;
-                updateScoreboardElement(usScoreElem, usScoreTotal);
-                updateScoreboardElement(themScoreElem, themScoreTotal);
-                updateCurrentStatus("Rival #1 met their bid. They scored " + themScore + " points. You scored " + usScore + " points.");
+
+                if(themScoreTotal >= 300) {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("The rivals have won the game. Better luck next time.");
+                    gameWon = true;
+                } else {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("Rival #1 met their bid. They scored " + themScore + " points. You scored " + usScore + " points.");
+                }
             } else {
                 themScoreTotal -= rival1Bid;
                 usScoreTotal += usScore;
@@ -1410,9 +1414,17 @@ function beginNextRound() {
             if(themScore >= rival2Bid) {
                 themScoreTotal += themScore;
                 usScoreTotal += usScore;
-                updateScoreboardElement(usScoreElem, usScoreTotal);
-                updateScoreboardElement(themScoreElem, themScoreTotal);
-                updateCurrentStatus("Rival #2 met their bid. They scored " + themScore + " points. You scored " + usScore + " points.");
+
+                if(themScoreTotal >= 300) {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("The rivals have won the game. Better luck next time.");
+                    gameWon = true;
+                } else {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("Rival #2 met their bid. They scored " + themScore + " points. You scored " + usScore + " points.");
+                }      
             } else {
                 themScoreTotal -= rival2Bid;
                 usScoreTotal += usScore;
@@ -1420,6 +1432,18 @@ function beginNextRound() {
                 updateScoreboardElement(themScoreElem, themScoreTotal);
                 updateCurrentStatus("Bid not met! Their score was deducted by " + rival2Bid + " points. You scored " + usScore + " points.");
             }
+        }
+
+        if(!gameWon) {
+            resetSet();
+            set++;
+        
+            const startNextSetTimeout = setTimeout(() => {
+                startNextSet();
+            }, 4000);
+            timeoutArray.push(startNextSetTimeout);
+        } else {
+            // player needs to push reset
         }
     }
 }
@@ -1999,7 +2023,32 @@ function startGame() {
     // handleMiddleCardsFront => handleDiscarding (playerDiscarding or autoDiscarding) => beginRoundOneAutoPlayer
     // playFirstTrumpAutoPlayer
     revealPlayerHand();
+}
 
+function startNextSet() {
+
+    // if set over 4, restart it at 1
+    if(set > 4) {
+        set = 1;
+    }
+
+    if(set == 1) {
+        firstBidder = 'rival1';
+    } else if(set == 2) {
+        firstBidder = 'player';
+    } else if(set == 3) {
+        firstBidder = 'rival2';
+    } else if(set == 4) {
+        firstBidder = 'partner';
+    }
+
+    shuffleCards();
+    dealCards();
+    sortPlayerHand(playerHand);
+    dealPlayerHand();
+    dealMiddleCards();
+    collectBidsFromAutoPlayers();
+    revealPlayerHand();
 }
 
 // resets the game
@@ -2049,12 +2098,57 @@ function resetGame() {
     canPlayerSelectTrump = false;
     playGameButton.disabled = false;
     round = 0;
+    set = 0;
     leadColor = 'none';
     leadPlayer = 'none';
     cardsPlayedThisRound = [];
     trumped = false;
-    cardsWonByPlayerTeam = [];
-    cardsWonByRivalTeam = [];
+    gameWon = false;
+}
+
+function resetSet() {
+    clearMyIntervals();
+    clearMyTimeouts();
+    intervalArray = [];
+    timeoutArray = [];
+    // resets middle 4 for bidding and player hand below
+    middleFourContainer.innerHTML = "";
+    playerHandContainer.innerHTML = "";
+
+    innerGameTableContainer.classList.add('invisible');
+
+    // resets the 4 cards for gameplay
+    partnerCardContainer.innerHTML = "";
+    rival1CardContainer.innerHTML = "";
+    rival2CardContainer.innerHTML = "";
+    playerCardContainer.innerHTML = "";
+
+    updateCurrentBid(0);
+    usScore = 0;
+    themScore = 0;
+    currentBid = 0;
+    playerBid = 0;
+    partnerBid = 0;
+    rival1Bid = 0;
+    rival2Bid = 0;
+    trumpColor = 'None';
+    updateScoreboardElement(trumpBadgeContainer, "None", "Black");
+    playerHand = [];
+    partnerHand = [];
+    rival1Hand = [];
+    rival2Hand = [];
+    middle = [];
+    discards = [];
+    highestBidder = '';
+    hasPlayerAnswered = false;
+    canPlayerDiscard = false;
+    canPlayerSelectCard = false;
+    canPlayerSelectTrump = false;
+    round = 0;
+    leadColor = 'none';
+    leadPlayer = 'none';
+    cardsPlayedThisRound = [];
+    trumped = false;
 }
 
 
