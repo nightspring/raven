@@ -63,8 +63,6 @@ const resetButton = document.getElementById('resetGame');
 
 // initialize player hand elements
 const playerHandContainer = document.querySelector('.player-hand-container');
-// the below only selects the first instance of the class
-const playerHandImgClass = document.querySelector('.player-hand-img');
 
 // initialize middle card elements
 const middleFourContainer = document.querySelector('.middle-four-container');

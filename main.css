@@ -43,6 +43,7 @@ header {
     display: flex;
     justify-content: center;
     align-items: center;
+    
 }
 
 .logo-container {
@@ -52,14 +53,16 @@ header {
 }
 
 .raven-title {
-    margin-right: 20px;
+    display: inline;
+    margin-right: 15px;
+    margin-bottom: -22px;
 }
 
 .logo-img {
     background-color: #FFFFFF;
     border-radius: 10px;
     height: 55px;
-    padding: 15px;
+    padding: 10px;
 }
 
 #rulesLink {
@@ -94,6 +97,7 @@ header {
 .buttons-container {
     display: flex;
     justify-content: center;
+    margin-top: 10px;
 }
 
 .reset-button-container,
@@ -238,17 +242,15 @@ header {
 /* adjust this width with media */
 .player-hand-container {
     text-align: center;
-    min-width: 200px;
-    width: 50%;
+    width: 1000px;
     margin: auto;
 }
 
 /* adjust this width with media */
-.your-hand-p {
+.your-hand-container {
     margin: auto;
-    margin-bottom: 8px;
-    padding-left: 25px;
-    width: 50%;
+    width: 925px;
+    margin-bottom: -5px;
 }
 
 .player-hand-img {
@@ -260,3 +262,47 @@ header {
     visibility: hidden;
 }
 
+#overlay {
+    position: fixed;
+    display: none;
+    background-color: rgba(0,0,0,0.8);
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    cursor: pointer;
+}
+
+.rules-overlay-container {
+    background-color: #D3D3D3;
+    color: black;
+    margin: auto;
+    font-size: 1.1rem;
+    margin-top: 40px;
+    height: 50%;
+    width: 40%;
+    border-radius: 30px;
+    overflow-y: auto;
+}
+
+.inner-rules-container {
+    padding: 20px;
+    padding-top: 0;
+}
+
+#ravenRules {
+    margin: auto;
+    text-align: center;
+}
+
+.cross {
+    display: inline-block;
+    font-size: 2.2rem;
+    margin: auto;
+    margin-top: 10px;
+    margin-left: -15px;
+    text-align: right;
+    width: 100%;
+  }

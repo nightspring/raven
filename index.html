@@ -10,13 +10,14 @@
 </head>
 <body>
     <header>
+        
         <div class="scoreboard-container">
             <div class="logo-container">
                 <h1 class="raven-title">Raven</h1>
                 <img src="/img/raven.png" alt="Game Logo" class="logo-img">
                 
             </div>
-            <div class="rules-container"><h3 class="rules"><a href="" id="rulesLink">Rules</a></h3></div>
+            <div class="rules-container"><h3 class="rules"><a href="#" id="rulesLink" onclick="overlayOn()">Rules</a></h3></div>
             <div class="score-container">
                 <h2 class="score">Score:&nbsp;&nbsp; Us&nbsp;<div class="badge-container"><span class="badge usScore">0</span></div>&nbsp;&nbsp;Them&nbsp;<div class="badge-container"><span class="badge themScore">0</span></div></h2>
             </div>
@@ -60,12 +61,41 @@
                     <p class="your-card-info">Your Card</p>
                 </div>
             </div>
-            <p class="your-hand-p">Your Hand</p>
+            <div class="your-hand-container"><p class="your-hand-p">Your Hand</p></div>
             <div class="player-hand-container">
                 
             </div>
         </div>
+        <div id="overlay" onclick="overlayOff()">
+            <div class="rules-overlay-container">
+                <span class="cross">X</span>
+                <div class="inner-rules-container">
+                    <h2 id="ravenRules"><u>Raven Rules</u></h2>
+                    <p>The goal of Raven is to reach 300 points by winning "Counter" cards in tricks. 14s and 10s are each worth 10 points, while 5s are worth 5 points.
+                        Each player will bid for the opportunity to get the middle four cards and to determine the trump color. There is a total of 100 possible points to be won in a set of nine rounds.
+                        The winning bidder will play first, and the first card they play will set the trump color. 
+                    </p>
+                    <p>In any round after the first, the first card played will determine the suit color for that trick. The highest number played of that leading color will take the trick, unless there is a trump card played.
+                        If there are multiple trump cards played, then the trump card with the highest number will win the trick.
+                    </p>
+                    <p>
+                        After nine rounds of play, points are added up for each team. If the winning bidder doesn't meet their bid, their score is subtracted by the amount of their bid.
+                        If they meet their bid the points they won will be added to their score.
+                        The rival team also has any points won added to their score. The first team to reach 300 points wins the game!
+                    </p>
+                </div>
+            </div>
+        </div>
     </main>
     <script src="index.js" type="module"></script>
+    <script>
+        function overlayOn() {
+            document.getElementById("overlay").style.display = "block";
+        }
+
+        function overlayOff() {
+            document.getElementById("overlay").style.display = "none";
+        }       
+    </script>
 </body>
 </html> 
