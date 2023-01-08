@@ -50,16 +50,18 @@ let leadPlayer = 'none';
 let cardsPlayedThisRound = [];
 let trumped = false;
 let gameWon = false;
+let trumpsPlayedThisRound = 0;
+
 
 // initialize scoreboard, status update, and game buttons
 const usScoreElem = document.querySelector('.usScore');
 const themScoreElem = document.querySelector('.themScore');
 const currentBidElem = document.querySelector('.currentBid');
 const trumpBadgeContainer = document.querySelector('.trump-badge-container');
-const trumpElem = document.querySelector('.trumpElem');
 const currentStatusElem = document.querySelector('.current-status');
 const playGameButton = document.getElementById('playGame');
 const resetButton = document.getElementById('resetGame');
+const promptContainer = document.getElementById('promptContainer');
 
 // initialize player hand elements
 const playerHandContainer = document.querySelector('.player-hand-container');
@@ -917,6 +919,11 @@ function cardsThatMatchLeadColor(hand) {
 
 // pushes to cardsPlayedThisRound, calls displayCard function
 function playCard(player, card) {
+    // checks if is a trump card
+    if(cardInfo[card].color == trumpColor) {
+        trumpsPlayedThisRound++;
+    }
+
     if(player == 'rival1') {
         cardsPlayedThisRound.push(card);
         displayCard('rival1', card);
@@ -967,12 +974,47 @@ function displayCard(player, card) {
 
 function playRival1Card() {
 
-    // if first player this round, play trump or high card
+    // which card to choose if first player this round
     if(cardsPlayedThisRound.length == 0) {
-        playCard('rival1', rival1Hand[0]);
-        leadColor = cardInfo[rival1Hand[0]].color;
-        leadPlayer = 'rival1';
-        rival1Hand.shift(); 
+        
+        // if all trumps are out, save remaining trumps in player's hand until needed
+        if(trumpsPlayedThisRound < 10 && highestBidder == 'rival1') {
+            let myTrumps = 0;
+            // checks for how many trumps remaining in hand
+            for(let i in rival1Hand) {
+                if(cardInfo[rival1Hand[i]].color == trumpColor) {
+                    myTrumps++;
+                }
+            }
+            
+            // if player still has trumps, and all others out, choose next highest card
+            if(trumpsPlayedThisRound + myTrumps == 10 && rival1Hand.length > myTrumps) {
+                for(let j in rival1Hand) {
+                    if(cardInfo[rival1Hand[j]].color != trumpColor) {
+                        let index = j;
+                        playCard('rival1', rival1Hand[index]);
+                        leadColor = cardInfo[rival1Hand[index]].color;
+                        leadPlayer = 'rival1';
+                        rival1Hand.splice(index, 1);
+                        break;
+                    }
+                }
+
+            // play highest card, trumps first
+            } else {
+                playCard('rival1', rival1Hand[0]);
+                leadColor = cardInfo[rival1Hand[0]].color;
+                leadPlayer = 'rival1';
+                rival1Hand.shift();
+            }
+
+        // play highest card
+        } else {
+            playCard('rival1', rival1Hand[0]);
+            leadColor = cardInfo[rival1Hand[0]].color;
+            leadPlayer = 'rival1';
+            rival1Hand.shift();
+        }
         
     // if 2nd, 3rd or 4th player
     } else if(cardsPlayedThisRound.length < 4) {
@@ -1000,15 +1042,48 @@ function playRival1Card() {
 }
 
 function playRival2Card() {
-
     // if first player this round, play trump or high card
     if(cardsPlayedThisRound.length == 0) {
-        playCard('rival2', rival2Hand[0]);
-        leadColor = cardInfo[rival2Hand[0]].color;
-        leadPlayer = 'rival2';
-        rival2Hand.shift();      
-        
 
+        // if all trumps are out, save remaining trumps in player's hand until needed
+        if(trumpsPlayedThisRound < 10 && highestBidder == 'rival2') {
+            let myTrumps = 0;
+            // checks for how many trumps remaining in hand
+            for(let i in rival2Hand) {
+                if(cardInfo[rival2Hand[i]].color == trumpColor) {
+                    myTrumps++;
+                }
+            }
+            
+            // if player still has trumps, and all others out, choose next highest card
+            if(trumpsPlayedThisRound + myTrumps == 10 && rival2Hand.length > myTrumps) {
+                for(let j in rival2Hand) {
+                    if(cardInfo[rival2Hand[j]].color != trumpColor) {
+                        let index = j;
+                        playCard('rival2', rival2Hand[index]);
+                        leadColor = cardInfo[rival2Hand[index]].color;
+                        leadPlayer = 'rival2';
+                        rival2Hand.splice(index, 1);
+                        break;
+                    }
+                }
+
+            // play highest card, trumps first
+            } else {
+                playCard('rival2', rival2Hand[0]);
+                leadColor = cardInfo[rival2Hand[0]].color;
+                leadPlayer = 'rival2';
+                rival2Hand.shift();
+            }
+
+        // play highest card
+        } else {
+            playCard('rival2', rival2Hand[0]);
+            leadColor = cardInfo[rival2Hand[0]].color;
+            leadPlayer = 'rival2';
+            rival2Hand.shift();
+        }
+        
     // if 2nd, 3rd or 4th player
     } else if(cardsPlayedThisRound.length < 4) {
 
@@ -1038,12 +1113,48 @@ function playRival2Card() {
     }
 }
 function playPartnerCard() {
+
     // if first player this round, play trump or high card
     if(cardsPlayedThisRound.length == 0) {
-        playCard('partner', partnerHand[0]);
-        leadColor = cardInfo[partnerHand[0]].color;
-        leadPlayer = 'partner';
-        partnerHand.shift();
+
+        // if all trumps are out, save remaining trumps in player's hand until needed
+        if(trumpsPlayedThisRound < 10 && highestBidder == 'partner') {
+            let myTrumps = 0;
+            // checks for how many trumps remaining in hand
+            for(let i in partnerHand) {
+                if(cardInfo[partnerHand[i]].color == trumpColor) {
+                    myTrumps++;
+                }
+            }
+            
+            // if player still has trumps, and all others out, choose next highest card
+            if(trumpsPlayedThisRound + myTrumps == 10 && partnerHand.length > myTrumps) {
+                for(let j in partnerHand) {
+                    if(cardInfo[partnerHand[j]].color != trumpColor) {
+                        let index = j;
+                        playCard('partner', partnerHand[index]);
+                        leadColor = cardInfo[partnerHand[index]].color;
+                        leadPlayer = 'partner';
+                        partnerHand.splice(index, 1);
+                        break;
+                    }
+                }
+
+            // play highest card, trumps first
+            } else {
+                playCard('partner', partnerHand[0]);
+                leadColor = cardInfo[partnerHand[0]].color;
+                leadPlayer = 'partner';
+                partnerHand.shift();
+            }
+
+        // play highest card
+        } else {
+            playCard('partner', partnerHand[0]);
+            leadColor = cardInfo[partnerHand[0]].color;
+            leadPlayer = 'partner';
+            partnerHand.shift();
+        }
         
     // if 2nd, 3rd or 4th player
     } else if(cardsPlayedThisRound.length < 4) {
@@ -1346,6 +1457,11 @@ function beginNextRound() {
                     updateScoreboardElement(themScoreElem, themScoreTotal);
                     updateCurrentStatus("You've won the game! Congratulations!");
                     gameWon = true;
+                } else if(themScoreTotal >= 300) {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("The rivals have won the game. Better luck next time.");
+                    gameWon = true;
                 } else {
                     updateScoreboardElement(usScoreElem, usScoreTotal);
                     updateScoreboardElement(themScoreElem, themScoreTotal);
@@ -1354,9 +1470,16 @@ function beginNextRound() {
             } else {
                 usScoreTotal -= partnerBid;
                 themScoreTotal += themScore;
-                updateScoreboardElement(usScoreElem, usScoreTotal);
-                updateScoreboardElement(themScoreElem, themScoreTotal);
-                updateCurrentStatus("Bid not met! Your score was deducted by " + partnerBid + " points. Your rivals scored " + themScore + " points.");
+                if(themScoreTotal < 300) {                  
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("Bid not met! Your score was deducted by " + partnerBid + " points. Your rivals scored " + themScore + " points.");
+                } else {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("The rivals have won the game. Better luck next time.");
+                    gameWon = true;
+                }              
             }
 
         // player is the highest bidder
@@ -1370,6 +1493,11 @@ function beginNextRound() {
                     updateScoreboardElement(themScoreElem, themScoreTotal);
                     updateCurrentStatus("You've won the game! Congratulations!");
                     gameWon = true;
+                } else if(themScoreTotal >= 300) {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("The rivals have won the game. Better luck next time.");
+                    gameWon = true;
                 } else {
                     updateScoreboardElement(usScoreElem, usScoreTotal);
                     updateScoreboardElement(themScoreElem, themScoreTotal);
@@ -1378,9 +1506,16 @@ function beginNextRound() {
             } else {
                 usScoreTotal -= playerBid;
                 themScoreTotal += themScore;
-                updateScoreboardElement(usScoreElem, usScoreTotal);
-                updateScoreboardElement(themScoreElem, themScoreTotal);
-                updateCurrentStatus("Bid not met! Your score was deducted by " + playerBid + " points. Your rivals scored " + themScore + " points.");
+                if(themScoreTotal < 300) {               
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("Bid not met! Your score was deducted by " + playerBid + " points. Your rivals scored " + themScore + " points.");
+                } else {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("The rivals have won the game. Better luck next time.");
+                    gameWon = true;
+                }    
             }
 
         // rival1 is the highest bidder
@@ -1394,6 +1529,11 @@ function beginNextRound() {
                     updateScoreboardElement(themScoreElem, themScoreTotal);
                     updateCurrentStatus("The rivals have won the game. Better luck next time.");
                     gameWon = true;
+                } else if(usScoreTotal >= 300) {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("You've won the game! Congratulations!");
+                    gameWon = true;
                 } else {
                     updateScoreboardElement(usScoreElem, usScoreTotal);
                     updateScoreboardElement(themScoreElem, themScoreTotal);
@@ -1402,9 +1542,17 @@ function beginNextRound() {
             } else {
                 themScoreTotal -= rival1Bid;
                 usScoreTotal += usScore;
-                updateScoreboardElement(usScoreElem, usScoreTotal);
-                updateScoreboardElement(themScoreElem, themScoreTotal);
-                updateCurrentStatus("Bid not met! Their score was deducted by " + rival1Bid + " points. You scored " + usScore + " points.");
+                if(usScoreTotal < 300) {                 
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("Bid not met! Their score was deducted by " + rival1Bid + " points. You scored " + usScore + " points.");
+                } else {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("You've won the game! Congratulations!");
+                    gameWon = true;
+                }
+                
             }
         
         // rival2 is the highest bidder
@@ -1418,6 +1566,11 @@ function beginNextRound() {
                     updateScoreboardElement(themScoreElem, themScoreTotal);
                     updateCurrentStatus("The rivals have won the game. Better luck next time.");
                     gameWon = true;
+                } else if(usScoreTotal >= 300) {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("You've won the game! Congratulations!");
+                    gameWon = true;
                 } else {
                     updateScoreboardElement(usScoreElem, usScoreTotal);
                     updateScoreboardElement(themScoreElem, themScoreTotal);
@@ -1426,9 +1579,16 @@ function beginNextRound() {
             } else {
                 themScoreTotal -= rival2Bid;
                 usScoreTotal += usScore;
-                updateScoreboardElement(usScoreElem, usScoreTotal);
-                updateScoreboardElement(themScoreElem, themScoreTotal);
-                updateCurrentStatus("Bid not met! Their score was deducted by " + rival2Bid + " points. You scored " + usScore + " points.");
+                if(usScoreTotal < 300) {    
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("Bid not met! Their score was deducted by " + rival2Bid + " points. You scored " + usScore + " points.");
+                } else {
+                    updateScoreboardElement(usScoreElem, usScoreTotal);
+                    updateScoreboardElement(themScoreElem, themScoreTotal);
+                    updateCurrentStatus("You've won the game! Congratulations!");
+                    gameWon = true;
+                }
             }
         }
 
@@ -1930,7 +2090,27 @@ function handleBids() {
 
 // prompts the player for their first bid
 function promptPlayer() {
-    let answer = prompt('Enter a bid between 0 and 100 in increments of 5.');
+    promptContainer.innerHTML = `<div class="inner-prompt-container">
+    <h3>
+        Enter a bid between 0 and 100 in increments of 5. Or click 'Pass' to pass.
+    </h3>
+    <form>
+        <input type="text" id="textInput">
+        <input type="submit" value="Submit" id="submitBid">
+        <input type="button" value="Pass" id="passBid">
+    </form>
+    </div>`;
+    promptContainer.style.display = "block";
+    document.getElementById("submitBid").addEventListener('click', () => {
+        handleSubmitBid();
+    });
+    document.getElementById("passBid").addEventListener('click', () => {
+        handlePassButton();
+    });
+}
+
+function handleSubmitBid() {
+    let answer = document.getElementById("textInput").value;
     if(answer >= 0 && answer <= 100 && (answer % 5 == 0)) {
         playerBid = answer;
         hasPlayerAnswered = true;
@@ -1947,21 +2127,89 @@ function promptPlayer() {
             updateCurrentStatus(temp);
             handleBids();
         }
+    promptContainer.style.display = "none";
+    promptContainer.innerHTML = "";
     } else {
-        promptPlayer();
+        console.log("Add warning.");
     }
+}
+
+function handlePassButton() {
+    playerBid = 0;
+    hasPlayerAnswered = true;
+    let temp = "";
+    if(playerBid > currentBid) {
+        currentBid = playerBid;
+        updateCurrentBid(currentBid);
+        highestBidder = 'player';
+        temp = "You bid " + playerBid + ".";
+        updateCurrentStatus(temp);
+        handleBids();
+    } else {
+        temp = "You pass.";
+        updateCurrentStatus(temp);
+        handleBids();
+    }
+    promptContainer.style.display = "none";
+    promptContainer.innerHTML = "";
+}
+
+function handlePassButtonSecondTime() {
+    // determine message displayed for highest bidder
+    let gameStartMessage = '';
+    if(highestBidder == 'partner') {
+        gameStartMessage = 'Your partner is the highest bidder. Revealing middle cards...';
+    } else if(highestBidder == 'player') {
+        gameStartMessage = 'You are the highest bidder. Revealing middle cards...';
+    } else if(highestBidder == 'rival1') {
+        gameStartMessage = 'Rival #1 is the highest bidder. Revealing middle cards...';
+    } else {
+        gameStartMessage = 'Rival #2 is the highest bidder. Revealing middle cards...';
+    }
+    // reveal middle cards
+    updateCurrentStatus(gameStartMessage);
+    handleMiddleCardsFront();
+    promptContainer.style.display = "none";
+    promptContainer.innerHTML = "";
 }
 
 // prompts a player for a second time
 function promptPlayerSecondTime() {
-    let answer = prompt('The highest bid is ' + currentBid + '. Enter a higher number if you want to increase the bid.');
+
+    if(highestBidder != 'player') {
+        promptContainer.innerHTML = `<div class="inner-prompt-container">
+        <h3>
+            The highest bid is ${currentBid}. Enter a higher number if you want to increase your bid.
+        </h3>
+        <form>
+            <input type="text" id="textInput">
+            <input type="submit" value="Submit" id="submitBid">
+            <input type="button" value="Pass" id="passBid">
+        </form>
+        </div>`;
+        promptContainer.style.display = "block";
+        document.getElementById("submitBid").addEventListener('click', () => {
+            handleSubmitBidSecondTime();
+        });
+        document.getElementById("passBid").addEventListener('click', () => {
+            handlePassButtonSecondTime();
+        });
+    } else {
+        let gameStartMessage = 'You are the highest bidder. Revealing middle cards...';
+        // reveal middle cards
+        updateCurrentStatus(gameStartMessage);
+        handleMiddleCardsFront();
+    }
+}
+
+function handleSubmitBidSecondTime() {
+
+    let answer = document.getElementById("textInput").value;
     if(answer > currentBid && answer <= 100 && (answer % 5 == 0)) {
         playerBid = answer;
         currentBid = playerBid;
         updateCurrentBid(currentBid);
         highestBidder = 'player';
-        let temp = "You bid " + currentBid + ".";
-        updateCurrentStatus(temp);
         
         // determine message displayed for highest bidder
         let gameStartMessage = '';
@@ -1977,6 +2225,9 @@ function promptPlayerSecondTime() {
         // reveal middle cards
         updateCurrentStatus(gameStartMessage);
         handleMiddleCardsFront();
+        promptContainer.style.display = "none";
+        promptContainer.innerHTML = "";
+
     } else {
         // determine message displayed for highest bidder
         let gameStartMessage = '';
@@ -1992,6 +2243,8 @@ function promptPlayerSecondTime() {
         // reveal middle cards
         updateCurrentStatus(gameStartMessage);
         handleMiddleCardsFront();
+        promptContainer.style.display = "none";
+        promptContainer.innerHTML = "";
     }
 }
 
@@ -2102,6 +2355,7 @@ function resetGame() {
     cardsPlayedThisRound = [];
     trumped = false;
     gameWon = false;
+    trumpsPlayedThisRound = 0;
 }
 
 function resetSet() {
@@ -2147,6 +2401,7 @@ function resetSet() {
     leadPlayer = 'none';
     cardsPlayedThisRound = [];
     trumped = false;
+    trumpsPlayedThisRound = 0;
 }
 
 
