@@ -1,4 +1,4 @@
-import { cardInfo } from '/modules/cardInfo.mjs';
+import { cardInfo } from './modules/cardInfo.mjs';
 
 // initialize cardsArray
 let cardsArray = [];
@@ -186,7 +186,7 @@ function dealMiddleCards() {
     // iterates four times to generate middle card back elements
     // start i at 100 to not interfere with id numbers of actual cards
     for(let i = 100; i < 104; i++) {
-        let card = `<img src="/img/card-back.png" id="${i}" class="card middle-card invisible">`;
+        let card = `<img src="./img/card-back.png" id="${i}" class="card middle-card invisible">`;
         middleFourContainer.insertAdjacentHTML("beforeend", card);
     }
 }
