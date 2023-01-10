@@ -369,7 +369,7 @@ header {
 
 /* Media Queries */
 
-/* Large laptops */
+/* Laptops */
 @media screen and (max-width: 1440px) {
     .scoreboard-container {
         margin-top: 0;
@@ -414,113 +414,8 @@ header {
     .card {
         width: 80px;
     }
-    .partner-card-container {
-        height: 130px;
-        width: 90px;
-        margin: auto;
-    }
-    .partner-card-info {
-        font-size: .9rem;
-    }
-    .your-card-info {
-        font-size: .9rem;
-        margin-top: 0;
-    }
-    
-    .rival1-card-container {
-        height: 130px;
-        margin-top: -75px;
-        margin-left: 40px;
-        display: inline;
-        position: absolute;
-        width: 90px;
-    }
-    
-    .rival2-card-container {
-        height: 130px;
-        display: inline;
-        position: absolute;
-        margin-top: -75px;
-        margin-left: -130px;
-        width: 90px;
-    }
-    
-    .rival-card-info-left {
-        margin-top: -30px;
-        margin-left: -190px;
-        display: inline;
-        color: white;
-        text-align: left;
-        font-size: .9rem;
-        position: absolute;
-    }
-    
-    .rival-card-info-right {
-        margin-top: -30px;
-        margin-left: 135px;
-        display: inline;
-        color: white;
-        text-align: right;
-        font-size: .9rem;
-        position: absolute;
-    }
-    
-    .player-card-container {
-        height: 130px;
-        width: 90px;
-        margin-top: -100px;
-        margin: auto;
-    }
-    .your-hand-container {
-        width: 750px;
-        margin-top: -5px;
-    }
-}
-
-/* Small laptops */
-@media screen and (max-width: 1024px) {
-    .scoreboard-container {
-        margin-top: 0;
-    }
-    .current-status {
-        font-size: 1.1rem;
-        margin-bottom: 5px;
-    }
-    .raven-title {
-        display: inline;
-        margin-right: 15px;
-        margin-bottom: -18px;
-        font-size: 1.2rem;
-    }
-    h2 {
-        font-size: 1.1rem;
-    }
-    .rules {
-        font-size: .9rem;
-    }
-    .logo-img {
-        height: 30px;
-    }
-    .rules-overlay-container {
-        width: 60%;
-    }
-    .inner-prompt-container {
-        font-size: 1rem;
-        width: 60%;
-    }
-    .game-button {
-        font-size: .7rem;
-        padding: 5px 7px;
-    }
-    .buttons-container {
-        margin-top: 5px;
-    }
-    #textInput, #submitBid, #passBid {
-        font-size: 1rem;
-        padding: 8px;
-    }
-    .card {
-        width: 80px;
+    .middle-four-container {
+        margin-top: 15%;
     }
     .partner-card-container {
         height: 130px;
@@ -583,12 +478,15 @@ header {
         width: 750px;
         margin-top: -5px;
     }
+    .your-hand-p {
+        font-size: .9rem;
+    }
 }
-    
+ 
 /* iPads */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 820px) {
     .current-status {
-        font-size: .9rem;
+        font-size: 1rem;
     }
     .raven-title {
         display: inline;
@@ -597,7 +495,7 @@ header {
         font-size: 1.1rem;
     }
     h2 {
-        font-size: .9rem;
+        font-size: 1rem;
     }
     .rules {
         font-size: .75rem;
@@ -709,7 +607,7 @@ header {
 }
 
 /* Mobile */
-@media screen and (max-width: 480px) {
+@media screen and (max-width: 615px) {
     .current-status {
         font-size: 1rem;
     }
@@ -727,6 +625,9 @@ header {
     }
     .rules-container {
         display: none;
+    }
+    .middle-four-container {
+        margin-top: 20%;
     }
     .logo-img {
         height: 40px;
