@@ -2095,12 +2095,13 @@ function promptPlayer() {
         Enter a bid between 0 and 100 in increments of 5. Or click 'Pass' to pass.
     </h3>
     <form>
-        <input type="text" id="textInput">
+        <input type="text" id="textInput" autofocus>
         <input type="submit" value="Submit" id="submitBid">
         <input type="button" value="Pass" id="passBid">
     </form>
     </div>`;
     promptContainer.style.display = "block";
+    document.getElementById("textInput").focus();
     document.getElementById("submitBid").addEventListener('click', () => {
         handleSubmitBid();
     });
@@ -2177,17 +2178,19 @@ function handlePassButtonSecondTime() {
 function promptPlayerSecondTime() {
 
     if(highestBidder != 'player') {
+        promptContainer.innerHTML = "";
         promptContainer.innerHTML = `<div class="inner-prompt-container">
         <h3>
             The highest bid is ${currentBid}. Enter a higher number if you want to increase your bid.
         </h3>
         <form>
-            <input type="text" id="textInput">
+            <input type="text" id="textInput" autofocus>
             <input type="submit" value="Submit" id="submitBid">
             <input type="button" value="Pass" id="passBid">
         </form>
         </div>`;
         promptContainer.style.display = "block";
+        document.getElementById("textInput").focus();
         document.getElementById("submitBid").addEventListener('click', () => {
             handleSubmitBidSecondTime();
         });
